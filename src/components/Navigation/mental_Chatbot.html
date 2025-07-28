@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chatbot</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(0deg, #373ddf, #a0a0f0);
+      overflow: hidden;
+    }
+
+    .chat-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(6px);
+    }
+
+    .chat-bubble {
+      max-width: 75%;
+      padding: 16px 20px;
+      border-radius: 18px;
+      font-size: 16px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      position: relative;
+      animation: fadeIn 0.3s ease-in-out;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      display: block;
+      transition: transform 0.2s ease;
+    }
+
+    .chat-bubble:hover {
+      transform: translateY(-1px);
+    }
+
+    .user {
+      align-self: flex-end;
+      /* linear-gradient(to right, #6366f1, #658dea) */
+      background: #6366f1;
+      color: white;
+      border-bottom-right-radius: 6px;
+    }
+
+    .bot {
+      align-self: flex-start;
+      background: white;
+      color: #111827;
+      border-bottom-left-radius: 6px;
+    }
+
+    .input-container {
+      display: flex;
+      padding: 16px;
+      background: #bed5f4;
+      border-top: 1px solid #2d53a5;
+      box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 14px 18px;
+      font-size: 16px;
+      border: 1px solid #e1e6ec;
+      border-radius: 12px;
+      margin-right: 10px;
+      outline: none;
+      transition: 0.2s;
+    }
+
+    input[type="text"]:focus {
+      border-color: #61779a;
+      box-shadow: 0 0 0 3px #dbeafe;
+    }
+
+    button {
+      padding: 14px 20px;
+      background: linear-gradient(to right, #515eee, #34369d);
+      color: white;
+      font-size: 15px;
+      font-weight: bold;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    button:hover {
+      background: linear-gradient(to right, #7b51de, #301d79);
+    }
+
+    button:disabled {
+      background-color: #93c5fd;
+      cursor: not-allowed;
+    }
+
+    .typing {
+      font-style: italic;
+      opacity: 0.6;
+      font-size: 15px;
+      animation: blink 1.2s infinite;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 1; }
+    }
+
+    @media screen and (max-width: 600px) {
+      .chat-bubble {
+        max-width: 90%;
+        font-size: 15px;
+      }
+
+      input[type="text"] {
+        font-size: 15px;
+      }
+
+      button {
+        font-size: 14px;
+        padding: 12px 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container" id="chat"></div>
+  <div class="input-container">
+    <input type="text" id="user-input" placeholder="Type your message..." />
+    <button id="send-btn">Send</button>
+  </div>
+
+  <script type="module">
+    import { GoogleGenAI } from "https://esm.run/@google/genai";
+
+    const ai = new GoogleGenAI({
+      apiKey: "AIzaSyBw7k7pjVfMs5zpUEAbVAJuvLxCNOVNoLk",
+    });
+
+    const chat = await ai.chats.create({ model: "gemini-2.5-flash",
+    history: [
+      {
+        role: "model", // system-like prompt
+        parts: [{ text:"You are a helpful mental health assistant. Answer in a friendly and empathetic way." }],
+      },
+    ],
+  });
+    // parts:  text: "You are a helpful mental health assistant. Answer in a friendly and empathetic way."
+
+    const chatBox = document.getElementById("chat");
+    const input = document.getElementById("user-input");
+    const sendBtn = document.getElementById("send-btn");
+
+    sendBtn.addEventListener("click", sendMessage);
+    input.addEventListener("keypress", e => {
+      if (e.key === "Enter") sendMessage();
+    });
+
+    async function sendMessage() {
+      const userMsg = input.value.trim();
+      if (!userMsg) return;
+
+      addMessage(userMsg, "user");
+      input.value = "";
+      sendBtn.disabled = true;
+
+      const typingBubble = document.createElement("div");
+      typingBubble.className = "chat-bubble bot typing";
+      typingBubble.textContent = "Typing...";
+      chatBox.appendChild(typingBubble);
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      try {
+        const response = await chat.sendMessage({message:userMsg});
+        chatBox.removeChild(typingBubble);
+        addMessage(response.text, "bot");       //response ka text 
+      } catch (err) {
+        chatBox.removeChild(typingBubble);
+        addMessage("Oops! Something went wrong.", "bot");
+      } finally {
+        sendBtn.disabled = false;
+      }
+    }
+
+    function addMessage(text, sender) {
+      const bubble = document.createElement("div");
+      bubble.className = `chat-bubble ${sender}`;
+      bubble.innerHTML = formatText(text);
+      chatBox.appendChild(bubble);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function formatText(text) {
+      // Split into lines to handle line-based ###heading behavior
+      const lines = text.split('\n').map(line => {
+        // Line starts with ### but does NOT end with ###
+        if (line.startsWith("###") && !line.endsWith("###")) {
+          return `<div style="font-size: 20px; font-weight: bold; margin: 6px 0;">${line.replace(/^###\s*/, '')}</div>`;
+        }
+        // Inline ###text### -> large bold
+        line = line.replace(/###(.*?)###/g, '<strong style="font-size: 18px;">$1</strong>');
+        // Inline **text** -> bold
+        line = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        return line;
+      });
+      return lines.join('<br>');
+    }
+
+  </script>
+</body>
+</html>

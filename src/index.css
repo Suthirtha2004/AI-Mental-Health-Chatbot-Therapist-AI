@@ -1,0 +1,115 @@
+:root {
+  --color-primary: #667eea;
+  --color-primary-dark: #4f46e5;
+  --color-accent: #10b981;
+  --color-accent-light: #34d399;
+  --color-danger: #ef4444;
+  --color-warning: #f59e0b;
+  --color-bg: #f8fafc;
+  --color-bg-card: #fff;
+  --color-bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  --color-text: #213547;
+  --color-text-light: #4a5568;
+  --color-border: #e2e8f0;
+  --radius: 16px;
+  --shadow: 0 4px 12px rgba(0,0,0,0.08);
+  --transition: all 0.3s cubic-bezier(.4,0,.2,1);
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: light;
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  font-weight: 500;
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: var(--transition);
+}
+a:hover {
+  color: var(--color-primary-dark);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: var(--color-bg-gradient);
+  color: var(--color-text);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  color: var(--color-text);
+  margin-top: 0;
+}
+
+h1 { font-size: 2.5rem; }
+h2 { font-size: 2rem; }
+h3 { font-size: 1.5rem; }
+
+button {
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  padding: 0.6em 1.4em;
+  font-size: 1em;
+  font-weight: 600;
+  font-family: inherit;
+  background: var(--color-primary);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+}
+button:hover {
+  background: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+}
+button:focus,
+button:focus-visible {
+  outline: 3px solid var(--color-accent);
+}
+
+input, textarea, select {
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  padding: 0.7em 1em;
+  font-size: 1em;
+  font-family: inherit;
+  background: #fff;
+  color: var(--color-text);
+  transition: var(--transition);
+}
+input:focus, textarea:focus, select:focus {
+  border-color: var(--color-primary);
+  outline: none;
+}
+
+.card {
+  background: var(--color-bg-card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 2em;
+  margin-bottom: 2em;
+  transition: var(--transition);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  background: #e5e7eb;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 8px;
+}

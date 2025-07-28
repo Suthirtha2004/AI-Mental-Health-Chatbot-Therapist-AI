@@ -1,0 +1,277 @@
+.daily-tips {
+  width: 100vw;
+  min-height: 100vh;
+  margin: 0;
+  padding: 30px;
+  background: linear-gradient(135deg, #fef7ff 0%, #f3e8ff 100%);
+}
+
+.tips-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.tips-header h1 {
+  font-size: 2.5rem;
+  color: #2d3748;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.tips-header p {
+  font-size: 1.1rem;
+  color: #718096;
+  margin: 0;
+}
+
+.current-tip {
+  margin-bottom: 40px;
+}
+
+.tip-card {
+  background: white;
+  border-radius: 16px;
+  padding: 25px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  margin-bottom: 20px;
+}
+
+.tip-card.featured {
+  border: 2px solid #8b5cf6;
+  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+}
+
+.tip-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+}
+
+.tip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.tip-icon {
+  font-size: 2.5rem;
+  margin-right: 15px;
+}
+
+.tip-meta {
+  flex: 1;
+}
+
+.tip-meta h2,
+.tip-meta h3 {
+  margin: 0 0 8px 0;
+  color: #2d3748;
+  font-size: 1.4rem;
+}
+
+.tip-category {
+  display: inline-block;
+  background: #8b5cf6;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.tip-date {
+  display: block;
+  color: #718096;
+  font-size: 0.9rem;
+  margin-top: 5px;
+}
+
+.tip-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.favorite-btn,
+.share-btn {
+  background: none;
+  border: 1px solid #e2e8f0;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #718096;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.favorite-btn:hover,
+.share-btn:hover {
+  background: #f7fafc;
+  border-color: #cbd5e0;
+  color: #4a5568;
+}
+
+.favorite-btn.favorited {
+  background: #fecaca;
+  border-color: #f87171;
+  color: #dc2626;
+}
+
+.tip-content {
+  margin-bottom: 20px;
+}
+
+.tip-content p {
+  color: #4a5568;
+  line-height: 1.6;
+  margin: 0;
+  font-size: 1rem;
+}
+
+.affirmation-section {
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #f59e0b;
+}
+
+.affirmation-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  color: #92400e;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.affirmation-text {
+  color: #92400e;
+  font-style: italic;
+  font-size: 1.1rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.tips-navigation {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.nav-btn {
+  background: white;
+  border: 2px solid #e2e8f0;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  color: #4a5568;
+}
+
+.nav-btn:hover {
+  border-color: #8b5cf6;
+  color: #8b5cf6;
+}
+
+.nav-btn.active {
+  background: #8b5cf6;
+  border-color: #8b5cf6;
+  color: white;
+}
+
+.tips-grid,
+.tip-history,
+.favorites-section {
+  margin-bottom: 40px;
+}
+
+.tips-grid h2,
+.tip-history h2,
+.favorites-section h2 {
+  color: #2d3748;
+  margin: 0 0 25px 0;
+  font-size: 1.8rem;
+}
+
+.tips-list,
+.history-list,
+.favorites-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 20px;
+}
+
+.tip-card.history {
+  border-left: 4px solid #8b5cf6;
+}
+
+.tip-card.favorite {
+  border-left: 4px solid #f59e0b;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+}
+
+.empty-history,
+.empty-favorites {
+  text-align: center;
+  padding: 60px 20px;
+  color: #718096;
+}
+
+.empty-history h3,
+.empty-favorites h3 {
+  margin: 20px 0 10px 0;
+  color: #4a5568;
+  font-size: 1.5rem;
+}
+
+.empty-history p,
+.empty-favorites p {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .daily-tips {
+    padding: 12px;
+  }
+  
+  .tips-header h1 {
+    font-size: 2rem;
+  }
+  
+  .tips-list,
+  .history-list,
+  .favorites-list {
+    grid-template-columns: 1fr;
+  }
+  
+  .tip-header {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .tip-actions {
+    align-self: flex-end;
+  }
+  
+  .tips-navigation {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .nav-btn {
+    width: 100%;
+    max-width: 300px;
+    justify-content: center;
+  }
+}
