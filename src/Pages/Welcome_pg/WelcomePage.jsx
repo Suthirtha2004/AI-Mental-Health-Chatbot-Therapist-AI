@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import './WelcomePage.css';
+import './WelcomePage.css'; // We'll update this next
 
 const WelcomePage = () => {
   useEffect(() => {
@@ -73,9 +72,9 @@ const WelcomePage = () => {
           dust for your soul, we illuminate the path to your best self.
         </p>
 
-        <Link to="/dashboard" className="login-btn">
-          Start Your Journey
-        </Link>
+        <a href="/login" className="login-btn">
+          Login / Sign Up
+        </a>
 
         <div className="features">
           <div className="feature">
@@ -87,19 +86,19 @@ const WelcomePage = () => {
             </p>
           </div>
           <div className="feature">
-            <div className="feature-icon">🤖</div>
-            <h3 className="feature-title">AI Companion</h3>
+            <div className="feature-icon">✍️</div>
+            <h3 className="feature-title">Journal Jam </h3>
             <p className="feature-desc">
               Our AI gently guides you with personalized insights and nurturing
               recommendations.
             </p>
           </div>
           <div className="feature">
-            <div className="feature-icon">🌱</div>
-            <h3 className="feature-title">Virtual Garden</h3>
+            <div className="feature-icon">🦋</div>
+            <h3 className="feature-title">Safe Haven</h3>
             <p className="feature-desc">
-              Grow your own virtual plant that thrives with your positive moods
-              and daily care.
+              A protected space where your thoughts and feelings are kept sacred
+              and secure.
             </p>
           </div>
         </div>

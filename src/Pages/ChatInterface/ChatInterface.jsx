@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { MdSend } from 'react-icons/md';
 import { FaRobot, FaUser } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 import { useMentalHealth } from '../../context/MentalHealthContext';
+import Chatbot from '../../components/Chatbot/Chatbot';
 import './ChatInterface.css';
 
 const ChatInterface = () => {
@@ -160,71 +162,21 @@ const ChatInterface = () => {
   return (
     <div className="chat-interface">
       <div className="chat-header">
-        <h1>AI Mental Health Companion</h1>
-        <p>Your safe space to talk and be heard</p>
-        {crisisLevel > 0 && (
-          <div className="crisis-alert">
-            <span>Crisis Level: {crisisLevel}/5</span>
-            <a href="/crisis-support" className="crisis-link">Get Help Now</a>
-          </div>
-        )}
-      </div>
-
-      <div className="chat-container" ref={chatBoxRef}>
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`chat-bubble ${message.sender}`}
-          >
-            <div className="message-header">
-              {message.sender === 'bot' ? <FaRobot size={16} /> : <FaUser size={16} />}
-              <span className="sender-name">
-                {message.sender === 'bot' ? 'AI Companion' : 'You'}
-              </span>
-              <span className="message-time">
-                {new Date(message.timestamp).toLocaleTimeString()}
-              </span>
-            </div>
-            <div 
-              className="message-text"
-              dangerouslySetInnerHTML={{ __html: formatText(message.text) }}
-            />
-          </div>
-        ))}
+        <h1>AI Therapist Chat</h1>
+        <p>Share your thoughts and feelings with our AI mental health assistant</p>
         
-        {isTyping && (
-          <div className="chat-bubble bot typing">
-            <div className="message-header">
-              <FaRobot size={16} />
-              <span className="sender-name">AI Companion</span>
-            </div>
-            <div className="typing-indicator">
-              <span></span>
-              <span></span>
-              <span></span>
-            </div>
+        {crisisLevel >= 8 && (
+          <div className="crisis-alert">
+            <Link to="/crisis-support" className="crisis-link">
+              ⚠️ Would you like to access crisis support resources?
+            </Link>
           </div>
         )}
       </div>
 
-      <div className="input-container">
-        <input
-          type="text"
-          value={inputMessage}
-          onChange={(e) => setInputMessage(e.target.value)}
-          onKeyPress={handleKeyPress}
-          placeholder="Type your message..."
-          disabled={isTyping}
-        />
-        <button 
-          onClick={sendMessage}
-          disabled={!inputMessage.trim() || isTyping}
-        >
-          <MdSend size={20} />
-        </button>
-      </div>
+      <Chatbot />
     </div>
   );
 };
 
-export default ChatInterface; 
+export default ChatInterface;

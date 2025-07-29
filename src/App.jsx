@@ -12,60 +12,38 @@ import GoalTracker from './Pages/GoalTracker/GoalTracker';
 import CrisisSupport from './Pages/CrisisSupport/CrisisSupport';
 import Navigation from './components/Navigation/Navigation';
 import { MentalHealthProvider } from './context/MentalHealthContext';
+import { useState } from 'react';
 
 function App() {
+  const [isNavOpen, setIsNavOpen] = useState(false);
+
   return (
     <MentalHealthProvider>
       <Router>
-        <div className="app">
-          <Toaster position="top-right" />
-          <Routes>
-            <Route path="/" element={<WelcomePage />} />
-            <Route path="/dashboard" element={
-              <>
-                <Navigation />
-                <Dashboard />
-              </>
-            } />
-            <Route path="/mood-tracker" element={
-              <>
-                <Navigation />
-                <MoodTracker />
-              </>
-            } />
-            <Route path="/chat" element={
-              <>
-                <Navigation />
-                <ChatInterface />
-              </>
-            } />
-            <Route path="/mini-games" element={
-              <>
-                <Navigation />
-                <MiniGames />
-              </>
-            } />
-            <Route path="/virtual-plant" element={
-              <>
-                <Navigation />
-                <VirtualPlant />
-              </>
-            } />
-            <Route path="/daily-tips" element={
-              <>
-                <Navigation />
-                <DailyTips />
-              </>
-            } />
-            <Route path="/goal-tracker" element={
-              <>
-                <Navigation />
-                <GoalTracker />
-              </>
-            } />
-            <Route path="/crisis-support" element={<CrisisSupport />} />
-          </Routes>
-        </div>
+        <Routes>
+          {/* Welcome page without navigation */}
+          <Route path="/" element={<WelcomePage />} />
+          
+          {/* All other routes with navigation */}
+          <Route path="/*" element={
+            <div className="app">
+              <Toaster position="top-right" />
+              <Navigation />
+              <main className="main-content">
+                <Routes>
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/mood-tracker" element={<MoodTracker />} />
+                  <Route path="/chat" element={<ChatInterface />} />
+                  <Route path="/mini-games" element={<MiniGames />} />
+                  <Route path="/virtual-plant" element={<VirtualPlant />} />
+                  <Route path="/daily-tips" element={<DailyTips />} />
+                  <Route path="/goal-tracker" element={<GoalTracker />} />
+                  <Route path="/crisis-support" element={<CrisisSupport />} />
+                </Routes>
+              </main>
+            </div>
+          } />
+        </Routes>
       </Router>
     </MentalHealthProvider>
   );
