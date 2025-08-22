@@ -87,18 +87,17 @@ const WelcomePage = () => {
           </div>
           <div className="feature">
             <div className="feature-icon">✍️</div>
-            <h3 className="feature-title">Journal Jam </h3>
+            <h3 className="feature-title">Motivation Tips </h3>
             <p className="feature-desc">
-              Our AI gently guides you with personalized insights and nurturing
+              Our AI will provide motivation tips and nurturing
               recommendations.
             </p>
           </div>
           <div className="feature">
             <div className="feature-icon">🦋</div>
-            <h3 className="feature-title">Safe Haven</h3>
+            <h3 className="feature-title">Mood Plant</h3>
             <p className="feature-desc">
-              A protected space where your thoughts and feelings are kept sacred
-              and secure.
+              A virtual plant that grows with your emotions.
             </p>
           </div>
         </div>
