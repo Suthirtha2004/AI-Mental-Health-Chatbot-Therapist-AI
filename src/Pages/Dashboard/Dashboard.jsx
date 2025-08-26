@@ -145,7 +145,7 @@ const Dashboard = () => {
             <FaBook />
           </div>
           <div className="stat-content">
-            <h3>Journal Entries</h3>
+            <h3>Daily Tips</h3>
             <p className="stat-number">{journalEntries?.length || 0}</p>
             <p className="stat-desc">Total entries</p>
           </div>

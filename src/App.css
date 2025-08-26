@@ -1,21 +1,23 @@
 #root {
-  width: 100vw;
+  width: 100%;
   min-height: 100vh;
   margin: 0;
   padding: 0;
   background: var(--color-bg-gradient);
+  overflow-x: hidden; /* prevent horizontal shift */
 }
 
 .app {
   display: flex;
   width: 100%;
   min-height: 100vh;
+  overflow-y: auto; /* allow scrolling */
 }
 
 .main-content {
   flex: 1;
   padding: 20px;
-  margin-left: 250px;
+  overflow-y: auto;
 }
 
 @media (max-width: 768px) {
@@ -28,12 +30,15 @@
 .app-content {
   flex: 1;
   width: 100%;
-  transition: margin-left 0.3s ease;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
 }
 
+/* ✅ Sidebar space only applied once */
 @media (min-width: 769px) {
   .app-content {
-    margin-left: 250px;
+    margin-left: 250px; /* reserve space for sidebar */
   }
 }
 
