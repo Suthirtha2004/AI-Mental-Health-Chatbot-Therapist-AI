@@ -15,6 +15,7 @@
 .plant-header {
   text-align: center;
   margin-bottom: 40px;
+  transform: translateX(-110px);
 }
 
 .plant-header h1 {
@@ -32,18 +33,23 @@
 
 .plant-container {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
+  justify-items: start;
   gap: 30px;
   margin-bottom: 40px;
 }
 
 .plant-display {
-  background: white;
-  border-radius: 16px;
-  padding: 30px;
+  background: transparent;
+  border-radius: 0;
+  padding: 10px 0;
   text-align: center;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: none;
   position: relative;
+  max-width: 640px;
+  width: 100%;
+  margin: 0 auto;
+  transform: translateX(-110px);
 }
 
 .plant-pot {
@@ -55,9 +61,12 @@
   justify-content: center;
 }
 
+
+
 .plant {
   transition: all 0.5s ease;
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+  transform-origin: bottom center;
 }
 
 .water-animation {
@@ -83,6 +92,15 @@
     opacity: 0;
     transform: translate(-50%, -50%) scale(1);
   }
+}
+
+/* Gentle growth pulse for the plant emoji */
+@keyframes growPulse {
+  0% { transform: scale(1); }
+  25% { transform: scale(1.04); }
+  50% { transform: scale(1.07); }
+  75% { transform: scale(1.04); }
+  100% { transform: scale(1); }
 }
 
 .plant-info h2 {
@@ -207,20 +225,26 @@
 .plant-actions {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  grid-template-columns: 2.20fr 1.5fr;
+  gap: 50px;
+  justify-content: start;
+  justify-items: start;
+  justify-self: start;
 }
 
 .action-card {
-  background: white;
+  background: linear-gradient(135deg, #93c5fd 0%, #6ee7b7 100%);
   border-radius: 12px;
   padding: 25px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+  border: 1px solid #34d399;
+  width: 100%;
+  color: #1f2937;
 }
 
 .action-card h3 {
   margin: 0 0 20px 0;
-  color: #2d3748;
+  color: #0f172a;
   font-size: 1.3rem;
 }
 
@@ -238,12 +262,12 @@
 }
 
 .status-item span:first-child {
-  color: #64748b;
+  color: #1f2937;
   font-weight: 500;
 }
 
 .status-item span:last-child {
-  color: #2d3748;
+  color: #0f172a;
   font-weight: 600;
 }
 
@@ -255,7 +279,7 @@
 
 .growth-tips li {
   padding: 8px 0;
-  color: #4a5568;
+  color: #1f2937;
   border-bottom: 1px solid #f1f5f9;
 }
 
@@ -365,6 +389,15 @@
   
   .plant-actions {
     grid-template-columns: 1fr;
+  }
+  .plant-header {
+    transform: translateX(-55px);
+  }
+  .plant-display {
+    transform: translateX(-55px);
+  }
+  .action-card {
+    width: 100%;
   }
   
   .achievements-grid {

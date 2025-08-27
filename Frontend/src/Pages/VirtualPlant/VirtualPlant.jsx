@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { FaBoxOpen, FaRegHeart, FaRegStar, FaTrophy, FaDropbox } from 'react-icons/fa';
+import { useState } from 'react';
+import { FaDropbox } from 'react-icons/fa';
 import { useMentalHealth } from '../../context/MentalHealthContext';
 import './VirtualPlant.css';
 
@@ -30,6 +30,7 @@ const VirtualPlant = () => {
 
   const currentStage = plantStages.find(stage => plantLevel >= stage.level) || plantStages[0];
   const nextStage = plantStages.find(stage => stage.level > plantLevel);
+  
 
   const handleWaterPlant = () => {
     waterPlant();
@@ -39,9 +40,9 @@ const VirtualPlant = () => {
   };
 
   const getPlantSize = () => {
-    const baseSize = 100 + (plantLevel * 20);
+    const baseSize = 140 + (plantLevel * 24);
     const growthMultiplier = plantGrowth / 100;
-    return Math.max(80, baseSize * growthMultiplier);
+    return Math.max(120, baseSize * growthMultiplier);
   };
 
   const getPlantColor = () => {
@@ -52,8 +53,15 @@ const VirtualPlant = () => {
     return '#ef4444';
   };
 
+  const getGrowthPulseDuration = () => {
+    const minSeconds = 1.6;
+    const maxSeconds = 4.5;
+    const normalized = Math.max(0, Math.min(100, plantHealth)) / 100;
+    return (maxSeconds - (maxSeconds - minSeconds) * normalized).toFixed(2);
+  };
+
   const getWaterStatus = () => {
-    if (plantWater > 80) return { status: 'Well Watered', color: '#22c55e' };
+    if (plantWater > 80) return { status: 'Well Watered', color: '#166534' };
     if (plantWater > 60) return { status: 'Good', color: '#84cc16' };
     if (plantWater > 40) return { status: 'Needs Water', color: '#eab308' };
     if (plantWater > 20) return { status: 'Thirsty', color: '#f97316' };
@@ -62,17 +70,7 @@ const VirtualPlant = () => {
 
   const waterStatus = getWaterStatus();
 
-  // Calculate achievements
-  const achievements = [
-    { id: 'first_mood', name: 'First Mood Entry', icon: '🎯', unlocked: totalMoodEntries >= 1 },
-    { id: 'ten_moods', name: '10 Mood Entries', icon: '📊', unlocked: totalMoodEntries >= 10 },
-    { id: 'positive_streak', name: 'Positive Streak', icon: '🔥', unlocked: averageMood >= 7 },
-    { id: 'plant_level_3', name: 'Growing Plant', icon: '🌿', unlocked: plantLevel >= 3 },
-    { id: 'plant_level_5', name: 'Flowering Plant', icon: '🌸', unlocked: plantLevel >= 5 },
-    { id: 'perfect_health', name: 'Perfect Health', icon: '💚', unlocked: plantHealth >= 100 }
-  ];
-
-  const unlockedAchievements = achievements.filter(a => a.unlocked);
+  // Achievements removed per design update
 
   return (
     <div className="virtual-plant">
@@ -88,7 +86,8 @@ const VirtualPlant = () => {
               className="plant"
               style={{
                 fontSize: `${getPlantSize()}px`,
-                color: getPlantColor()
+                color: getPlantColor(),
+                animation: `growPulse ${getGrowthPulseDuration()}s ease-in-out infinite`
               }}
             >
               {currentStage.emoji}
@@ -106,68 +105,12 @@ const VirtualPlant = () => {
             {nextStage && (
               <div className="next-stage">
                 <span>Next: {nextStage.name} (Level {nextStage.level})</span>
-                <div className="progress-bar">
-                  <div 
-                    className="progress-fill"
-                    style={{ width: `${(plantGrowth - currentStage.minGrowth) / (nextStage.minGrowth - currentStage.minGrowth) * 100}%` }}
-                  />
-                </div>
               </div>
             )}
           </div>
         </div>
 
-        <div className="plant-stats">
-          <div className="stat-card">
-            <div className="stat-header">
-              <FaRegHeart />
-              <span>Health</span>
-            </div>
-            <div className="stat-value">{plantHealth}%</div>
-            <div className="stat-bar">
-              <div 
-                className="stat-fill health"
-                style={{ width: `${plantHealth}%` }}
-              />
-            </div>
-          </div>
-
-          <div className="stat-card">
-            <div className="stat-header">
-              <FaBoxOpen />
-              <span>Growth</span>
-            </div>
-            <div className="stat-value">{plantGrowth}%</div>
-            <div className="stat-bar">
-              <div 
-                className="stat-fill growth"
-                style={{ width: `${plantGrowth}%` }}
-              />
-            </div>
-          </div>
-
-          <div className="stat-card">
-            <div className="stat-header">
-              <FaDropbox />
-              <span>Water</span>
-            </div>
-            <div className="stat-value">{plantWater}%</div>
-            <div className="stat-bar">
-              <div 
-                className="stat-fill water"
-                style={{ width: `${plantWater}%` }}
-              />
-            </div>
-            <button 
-              className="water-btn"
-              onClick={handleWaterPlant}
-              disabled={plantWater >= 100}
-            >
-              <FaDropbox size={16} />
-              Water Plant
-            </button>
-          </div>
-        </div>
+        
 
         <div className="plant-actions">
           <div className="action-card">
@@ -208,30 +151,7 @@ const VirtualPlant = () => {
         </div>
       </div>
 
-      <div className="achievements-section">
-        <h2>Achievements</h2>
-        <div className="achievements-grid">
-          {achievements.map(achievement => (
-            <div 
-              key={achievement.id} 
-              className={`achievement ${achievement.unlocked ? 'unlocked' : 'locked'}`}
-            >
-              <div className="achievement-icon">
-                {achievement.unlocked ? achievement.icon : '🔒'}
-              </div>
-              <div className="achievement-name">{achievement.name}</div>
-              {achievement.unlocked && (
-                <div className="achievement-badge">
-                  <FaRegStar size={12} />
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-        <div className="achievement-stats">
-          <span>{unlockedAchievements.length}/{achievements.length} Achievements Unlocked</span>
-        </div>
-      </div>
+      
     </div>
   );
 };
