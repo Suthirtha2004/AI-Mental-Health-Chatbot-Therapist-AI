@@ -73,7 +73,11 @@ const WelcomePage = () => {
         </p>
 
         <a href="/login" className="login-btn">
-          Login / Sign Up
+          Login 
+        </a>
+        
+        <a href="/signup" className="login-btn">
+           Sign Up
         </a>
 
         <div className="features">
