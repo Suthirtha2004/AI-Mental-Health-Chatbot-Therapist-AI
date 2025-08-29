@@ -114,42 +114,52 @@
 }
 
 .suggestion-buttons {
-  margin-top: 12px;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  margin: 5px 0 15px 50px;
+  align-self: flex-start;
+  max-width: calc(100% - 50px);
 }
 
-.suggestion-buttons a {
-  padding: 8px 16px;
-  border-radius: 20px;
-  text-decoration: none;
-  color: white;
-  font-size: 14px;
+.suggestion-btn {
+  background-color: #e9e9eb;
+  color: #333;
+  border: 1px solid #d1d1d6;
+  padding: 8px 12px;
+  border-radius: 16px;
+  font-size: 0.85rem;
   font-weight: 500;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease-in-out;
 }
 
-.suggestion-buttons a:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+.suggestion-btn:hover {
+  background-color: #d1d1d6;
+  border-color: #c7c7cc;
+  transform: translateY(-1px);
 }
 
 @keyframes fadeIn {
-  from { 
-    opacity: 0; 
-    transform: translateY(5px); 
+  from {
+    opacity: 0;
+    transform: translateY(5px);
   }
-  to { 
-    opacity: 1; 
-    transform: translateY(0); 
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 @media (max-width: 768px) {

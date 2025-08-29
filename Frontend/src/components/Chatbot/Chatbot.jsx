@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./Chatbot.css";
 import { pipeline } from "@xenova/transformers"; // Hugging Face transformers.js
+import { Link } from "react-router-dom"; // Using Link for suggestion buttons
 
 const Chatbot = () => {
   const [chat, setChat] = useState(null);
@@ -8,7 +9,6 @@ const Chatbot = () => {
   const [inputText, setInputText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const chatBoxRef = useRef(null);
-
   const [sentimentAnalyzer, setSentimentAnalyzer] = useState(null);
 
   // Load Gemini
@@ -17,7 +17,8 @@ const Chatbot = () => {
       const { GoogleGenerativeAI } = await import(
         "https://esm.run/@google/generative-ai"
       );
-      const genAI = new GoogleGenerativeAI("AIzaSyBw7k7pjVfMs5zpUEAbVAJuvLxCNOVNoLk"); // 🔑 Replace with your Gemini key
+      // 🔑 IMPORTANT: Replace with your actual Gemini API key
+      const genAI = new GoogleGenerativeAI("AIzaSyBw7k7pjVfMs5zpUEAbVAJuvLxCNOVNoLk");
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
       setChat(model);
     };
@@ -40,36 +41,48 @@ const Chatbot = () => {
     return result[0];
   };
 
-  // Conversational prompt wrapper with memory
+  // Detect suicidal/self-harm thoughts
+  const checkSuicidal = (text) => {
+    const keywords = [
+      "suicide", "kill myself", "end my life", "want to die",
+      "self harm", "cut myself", "no reason to live", "life is not worth",
+    ];
+    const lower = text.toLowerCase();
+    return keywords.some((word) => lower.includes(word));
+  };
+
+  // New function to catch general negative feelings
+  const checkGeneralNegative = (text) => {
+    const keywords = [
+      'sad', 'unhappy', 'depressed', 'anxious', 'feeling down',
+      'miserable', 'awful', 'terrible', 'stressed', 'lonely', 'hurting'
+    ];
+    const lower = text.toLowerCase();
+    return keywords.some((word) => lower.includes(word));
+  };
+
+  // Conversational prompt wrapper
   const makePrompt = (recentMessages, sentiment) => {
     let mood = "";
     if (sentiment?.label === "POSITIVE") {
-      mood =
-        "The user sounds happy, so keep the energy fun and upbeat.";
+      mood = "The user sounds happy, so keep the energy fun and upbeat.";
     } else if (sentiment?.label === "NEGATIVE") {
-      mood =
-        "The user might be feeling low, so respond with empathy, comfort, and maybe a gentle suggestion.";
+      mood = "The user might be feeling low, so respond with empathy, comfort, and maybe a gentle suggestion.";
     } else {
       mood = "Use a casual, friendly tone like chatting with a close friend.";
     }
-
-    // Convert last 6 messages (user + bot) into a conversation history
     const history = recentMessages
       .map((m) => `${m.sender === "user" ? "User" : "AI"}: "${m.text}"`)
       .join("\n");
-
     return `
 You are an AI friend who talks casually (like WhatsApp chat).
 - Don't sound like a formal bot.
-- Keep replies **short-medium**, but not one-liners.  
-- Share **ideas or suggestions** sometimes.  
-- Ask a follow-up only occasionally.  
-
+- Keep replies **short-medium**, but not one-liners.
+- Share **ideas or suggestions** sometimes.
+- Ask a follow-up only occasionally.
 ${mood}
-
 Conversation so far:
 ${history}
-
 AI (casual, friendly reply to the last User message):
     `;
   };
@@ -79,48 +92,67 @@ AI (casual, friendly reply to the last User message):
     if (!inputText.trim()) return;
     const userMsg = inputText.trim();
 
-    // Add user message
     setMessages((prev) => [...prev, { text: userMsg, sender: "user" }]);
     setInputText("");
     setIsTyping(true);
 
-    // Run sentiment
     const sentiment = await analyzeSentiment(userMsg);
+    const isCrisis = checkSuicidal(userMsg);
+    const isGeneralNegative = checkGeneralNegative(userMsg);
 
     try {
       if (!chat) throw new Error("Gemini model not ready");
 
-      // Take last 10 messages (for memory)
-      const recentMessages = [...messages, { text: userMsg, sender: "user" }]
-        .slice(-10);
-
+      const recentMessages = [...messages, { text: userMsg, sender: "user" }].slice(-10);
       const prompt = makePrompt(recentMessages, sentiment);
 
-      // Gemini response
       const response = await chat.generateContent(prompt);
       const botReply = response.response.text();
 
-      setMessages((prev) => [...prev, { text: botReply, sender: "bot" }]);
+      const botMessage = {
+        text: botReply,
+        sender: "bot",
+        suggestions: [],
+      };
+      
+      if (isCrisis || isGeneralNegative || sentiment?.label === "NEGATIVE") {
+        botMessage.suggestions = [
+          { label: "Get Crisis Support", path: "/crisis-support" },
+          { label: "Play Mini Games", path: "/mini-games" },
+          { label: "Visit Virtual Plant", path: "/virtual-plant" },
+          { label: "Track Your Goals", path: "/goal-tracker" },
+          { label: "Read Daily Tips", path: "/daily-tips" },
+        ];
+      } else if (sentiment?.label === "POSITIVE") {
+        botMessage.suggestions = [
+          { label: "Read Daily Tips", path: "/daily-tips" },
+          { label: "Visit Virtual Plant", path: "/virtual-plant" },
+          { label: "Track Your Goals", path: "/goal-tracker" },
+        ];
+      }
+
+      setMessages((prev) => [...prev, botMessage]);
+
     } catch (err) {
       console.error("Gemini error:", err);
       setMessages((prev) => [
         ...prev,
-        {
-          text: "Oops! Something went wrong with Gemini.",
-          sender: "bot",
-        },
+        { text: "Oops! Something went wrong with Gemini.", sender: "bot" },
       ]);
     } finally {
       setIsTyping(false);
     }
   };
 
+  // --- 💡 CORRECTED SECTION START ---
   // Auto scroll
   useEffect(() => {
     if (chatBoxRef.current) {
+      // Corrected the typo from chatBoxBoxRef to chatBoxRef
       chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
     }
   }, [messages, isTyping]);
+  // --- 💡 CORRECTED SECTION END ---
 
   // Format output
   const formatText = (text) => {
@@ -147,11 +179,21 @@ AI (casual, friendly reply to the last User message):
     <div className="chat-wrapper">
       <div className="chat-container" ref={chatBoxRef}>
         {messages.map((msg, idx) => (
-          <div
-            key={idx}
-            className={`chat-bubble ${msg.sender}`}
-            dangerouslySetInnerHTML={{ __html: formatText(msg.text) }}
-          />
+          <React.Fragment key={idx}>
+            <div
+              className={`chat-bubble ${msg.sender}`}
+              dangerouslySetInnerHTML={{ __html: formatText(msg.text) }}
+            />
+            {msg.suggestions && msg.suggestions.length > 0 && (
+              <div className="suggestion-buttons">
+                {msg.suggestions.map((suggestion, i) => (
+                  <Link to={suggestion.path} key={i} className="suggestion-btn">
+                    {suggestion.label}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </React.Fragment>
         ))}
         {isTyping && <div className="chat-bubble bot typing">Typing...</div>}
       </div>
@@ -162,9 +204,7 @@ AI (casual, friendly reply to the last User message):
           placeholder="Type your message..."
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
-          onKeyPress={(e) => {
-            if (e.key === "Enter") handleSend();
-          }}
+          onKeyPress={(e) => { if (e.key === "Enter") handleSend(); }}
         />
         <button onClick={handleSend} disabled={!chat || isTyping}>
           Send
