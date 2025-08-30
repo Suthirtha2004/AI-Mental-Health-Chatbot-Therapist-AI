@@ -30,7 +30,6 @@ const VirtualPlant = () => {
 
   const currentStage = plantStages.find(stage => plantLevel >= stage.level) || plantStages[0];
   const nextStage = plantStages.find(stage => stage.level > plantLevel);
-  
 
   const handleWaterPlant = () => {
     waterPlant();
@@ -70,10 +69,8 @@ const VirtualPlant = () => {
 
   const waterStatus = getWaterStatus();
 
-  // Achievements removed per design update
-
   return (
-    <div className="virtual-plant">
+    <div className="virtual-plant-container">
       <div className="plant-header">
         <h1>Virtual Plant Garden</h1>
         <p>Your plant grows with your positive mood and care</p>
@@ -109,8 +106,6 @@ const VirtualPlant = () => {
             )}
           </div>
         </div>
-
-        
 
         <div className="plant-actions">
           <div className="action-card">
@@ -150,10 +145,8 @@ const VirtualPlant = () => {
           </div>
         </div>
       </div>
-
-      
     </div>
   );
 };
 
-export default VirtualPlant; 
+export default VirtualPlant;

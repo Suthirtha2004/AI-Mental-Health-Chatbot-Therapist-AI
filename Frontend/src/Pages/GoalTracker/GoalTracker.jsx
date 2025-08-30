@@ -120,7 +120,7 @@ const GoalTracker = () => {
                 <div className="goal-header">
                   <div className="goal-category">
                     {goalCategories.find(cat => cat.value === goal.category)?.icon}
-                    <span>{goalCategories.find(cat => cat.value === cat.value === goal.category)?.label}</span>
+                    <span>{goalCategories.find(cat => cat.value === goal.category)?.label}</span>
                   </div>
                   <div className="goal-actions">
                     <button className="action-btn">
@@ -407,4 +407,4 @@ const GoalTracker = () => {
   );
 };
 
-export default GoalTracker; 
+export default GoalTracker;
