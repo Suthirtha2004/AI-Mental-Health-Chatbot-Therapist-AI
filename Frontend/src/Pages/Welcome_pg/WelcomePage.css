@@ -243,7 +243,8 @@ html, body {
   }
 }
 
-/* Floating Hearts */
+/* --- 💡 REMOVED: Floating hearts CSS and animation --- */
+/*
 .floating-heart {
   position: absolute;
   font-size: 1.5rem;
@@ -286,6 +287,7 @@ html, body {
     opacity: 0.2;
   }
 }
+*/
 
 /* Content Styling */
 .welcome-header {

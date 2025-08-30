@@ -31,13 +31,7 @@ const WelcomePage = () => {
         elementsContainer.appendChild(circle);
       }
       
-      // Floating hearts
-      // for (let i = 1; i <= 3; i++) {
-      //   const heart = document.createElement('div');
-      //   heart.className = 'floating-heart';
-      //   heart.innerHTML = '💜';
-      //   elementsContainer.appendChild(heart);
-      // }
+  
       
       document.body.appendChild(elementsContainer);
     };
@@ -229,7 +223,7 @@ const WelcomePage = () => {
           </a>
           
           <a href="/signup" className="login-btn">
-             Sign Up
+            Sign Up
           </a>
         </div>
 
