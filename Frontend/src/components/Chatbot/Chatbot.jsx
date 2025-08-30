@@ -44,9 +44,35 @@ const Chatbot = () => {
   // Detect suicidal/self-harm thoughts
   const checkSuicidal = (text) => {
     const keywords = [
-      "suicide", "kill myself", "end my life", "want to die",
-      "self harm", "cut myself", "no reason to live", "life is not worth",
+      // Direct suicide terms
+      "suicide", "kill myself", "end my life", "want to die", "take my life",
+      "end it all", "end everything", "end this", "end myself",
+      
+      // Self-harm and destructive thoughts
+      "self harm", "cut myself", "hurt myself", "harm myself", "damage myself",
+      "no reason to live", "life is not worth", "life isn't worth", "not worth living",
+      "better off dead", "better off without me", "world better without me",
+      
+      // Hopelessness and giving up
+      "give up", "give up on life", "tired of living", "sick of living", "done with life",
+      "can't go on", "can't continue", "can't take it anymore", "can't handle it",
+      "don't want to be here", "don't want to exist", "don't want to live",
+      
+      // Passive suicidal thoughts
+      "wish I was dead", "wish I could die", "hope I die", "hope I don't wake up",
+      "if I die", "if something happens to me", "accident wouldn't be so bad",
+      "maybe I should just", "perhaps I should", "thinking about ending",
+      
+      // Specific methods (be careful with these)
+      "overdose", "over dose", "take pills", "swallow pills", "jump off", "jump from",
+      "hang myself", "hanging", "gun", "shoot myself", "drive off", "crash car",
+      
+      // Emotional expressions
+      "life is meaningless", "no point in living", "what's the point", "why bother",
+      "nobody would miss me", "everyone would be better off", "burden to others",
+      "worthless", "useless", "hopeless", "helpless", "trapped", "stuck"
     ];
+    
     const lower = text.toLowerCase();
     return keywords.some((word) => lower.includes(word));
   };
@@ -59,6 +85,19 @@ const Chatbot = () => {
     ];
     const lower = text.toLowerCase();
     return keywords.some((word) => lower.includes(word));
+  };
+
+  // New function to detect positive/happy moods
+  const checkPositiveMood = (text) => {
+    const positiveKeywords = [
+      'happy', 'excited', 'great', 'awesome', 'amazing', 'wonderful',
+      'fantastic', 'brilliant', 'excellent', 'joy', 'pleased', 'delighted',
+      'thrilled', 'ecstatic', 'elated', 'cheerful', 'upbeat', 'positive',
+      'good', 'nice', 'lovely', 'beautiful', 'perfect', 'best', 'love',
+      'enjoy', 'fun', 'laugh', 'smile', 'grin', '😊', '😄', '😂', '😍'
+    ];
+    const lower = text.toLowerCase();
+    return positiveKeywords.some((word) => lower.includes(word));
   };
 
   // Conversational prompt wrapper
@@ -99,6 +138,7 @@ AI (casual, friendly reply to the last User message):
     const sentiment = await analyzeSentiment(userMsg);
     const isCrisis = checkSuicidal(userMsg);
     const isGeneralNegative = checkGeneralNegative(userMsg);
+    const isPositiveMood = checkPositiveMood(userMsg);
 
     try {
       if (!chat) throw new Error("Gemini model not ready");
@@ -115,7 +155,13 @@ AI (casual, friendly reply to the last User message):
         suggestions: [],
       };
       
-      if (isCrisis || isGeneralNegative || sentiment?.label === "NEGATIVE") {
+      if (isCrisis) {
+        // For suicidal thoughts - only show crisis support
+        botMessage.suggestions = [
+          { label: "Get Crisis Support", path: "/crisis-support" },
+        ];
+      } else if (isGeneralNegative || sentiment?.label === "NEGATIVE") {
+        // For other negative emotions - show all other buttons
         botMessage.suggestions = [
           { label: "Get Crisis Support", path: "/crisis-support" },
           { label: "Play Mini Games", path: "/mini-games" },
@@ -123,7 +169,8 @@ AI (casual, friendly reply to the last User message):
           { label: "Track Your Goals", path: "/goal-tracker" },
           { label: "Read Daily Tips", path: "/daily-tips" },
         ];
-      } else if (sentiment?.label === "POSITIVE") {
+      } else if (isPositiveMood || sentiment?.label === "POSITIVE") {
+        // For positive emotions
         botMessage.suggestions = [
           { label: "Read Daily Tips", path: "/daily-tips" },
           { label: "Visit Virtual Plant", path: "/virtual-plant" },
@@ -177,6 +224,7 @@ AI (casual, friendly reply to the last User message):
 
   return (
     <div className="chat-wrapper">
+      
       <div className="chat-container" ref={chatBoxRef}>
         {messages.map((msg, idx) => (
           <React.Fragment key={idx}>

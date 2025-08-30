@@ -15,7 +15,7 @@
 .plant-header {
   text-align: center;
   margin-bottom: 40px;
-  transform: translateX(-110px);
+  /* 💡 REMOVED: transform: translateX(-110px); */
 }
 
 .plant-header h1 {
@@ -34,7 +34,7 @@
 .plant-container {
   display: grid;
   grid-template-columns: 1fr;
-  justify-items: start;
+  justify-items: center; /* 💡 CHANGED: from 'start' to 'center' */
   gap: 30px;
   margin-bottom: 40px;
 }
@@ -49,7 +49,7 @@
   max-width: 640px;
   width: 100%;
   margin: 0 auto;
-  transform: translateX(-110px);
+  /* 💡 REMOVED: transform: translateX(-110px); */
 }
 
 .plant-pot {
@@ -227,9 +227,9 @@
   display: grid;
   grid-template-columns: 2.20fr 1.5fr;
   gap: 50px;
-  justify-content: start;
-  justify-items: start;
-  justify-self: start;
+  justify-content: center; /* 💡 CHANGED: from 'start' to 'center' */
+  justify-items: center; /* 💡 CHANGED: from 'start' to 'center' */
+  justify-self: center; /* 💡 CHANGED: from 'start' to 'center' */
 }
 
 .action-card {
@@ -378,32 +378,34 @@
     margin-left: 0;
     padding: 20px;
   }
-  
+ 
   .plant-header h1 {
     font-size: 2rem;
   }
-  
+ 
   .plant-container {
     grid-template-columns: 1fr;
   }
-  
+ 
   .plant-actions {
     grid-template-columns: 1fr;
   }
   .plant-header {
-    transform: translateX(-55px);
+    /* 💡 REMOVED transform for mobile */
+    transform: none;
   }
   .plant-display {
-    transform: translateX(-55px);
+    /* 💡 REMOVED transform for mobile */
+    transform: none;
   }
   .action-card {
     width: 100%;
   }
-  
+ 
   .achievements-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+ 
   .plant-pot {
     min-height: 150px;
   }
