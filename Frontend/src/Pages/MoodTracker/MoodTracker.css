@@ -1,9 +1,18 @@
 .mood-tracker {
-  width: 100vw;
+  margin-left: 250px; /* Match sidebar width */
+  box-sizing: border-box;
+  width: calc(100% - 250px);
   min-height: 100vh;
-  margin: 0;
   padding: 30px;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.mood-tracker > * {
+  width: 100%;
+  max-width: 100%;
 }
 
 @media (max-width: 768px) {
@@ -221,6 +230,7 @@
   border-radius: 6px;
   padding: 8px 12px;
   cursor: pointer;
+  color:black;
   font-size: 0.875rem;
   transition: all 0.3s ease;
 }
@@ -307,52 +317,6 @@
   margin: 0 0 20px 0;
   color: #2d3748;
   font-size: 1.5rem;
-}
-
-/* Calendar View Styles */
-.calendar-view {
-  background: white;
-  border-radius: 12px;
-  padding: 25px;
-  margin-bottom: 30px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.calendar-view h2 {
-  margin: 0 0 20px 0;
-  color: #2d3748;
-  font-size: 1.5rem;
-}
-
-.mood-calendar {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 15px;
-}
-
-.calendar-day {
-  background: #f7fafc;
-  border-radius: 8px;
-  padding: 15px;
-  text-align: center;
-}
-
-.day-date {
-  font-size: 0.875rem;
-  color: #718096;
-  margin-bottom: 8px;
-}
-
-.day-mood {
-  font-size: 2rem;
-  margin-bottom: 8px;
-  border-radius: 8px;
-  padding: 8px;
-}
-
-.day-intensity {
-  font-size: 0.75rem;
-  color: #4a5568;
 }
 
 /* Insights View Styles */
@@ -462,6 +426,14 @@
 }
 
 /* Responsive Design */
+@media (max-width: 900px) {
+  .mood-tracker {
+    margin-left: 0;
+    width: 100%;
+    padding: 16px;
+  }
+}
+
 @media (max-width: 768px) {
   .mood-tracker {
     margin-left: 0;
@@ -486,9 +458,5 @@
   
   .insights-grid {
     grid-template-columns: 1fr;
-  }
-  
-  .mood-calendar {
-    grid-template-columns: repeat(2, 1fr);
   }
 }

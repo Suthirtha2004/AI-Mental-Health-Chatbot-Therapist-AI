@@ -1,13 +1,21 @@
 /* === Dashboard Layout === */
 .dashboard {
+  margin-left: 250px; /* Match sidebar width */
+  box-sizing: border-box;
+  width: calc(100% - 250px);
+  min-height: 100vh;
+  padding: 30px;
+  background: #f4f6fa;
+  font-family: "Segoe UI", sans-serif;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 30px;
   gap: 40px;
-  background: #f4f6fa;
-  min-height: 100vh;
-  font-family: "Segoe UI", sans-serif;
+}
+
+.dashboard > * {
+  width: 100%;
+  max-width: 100%;
 }
 
 /* === Dashboard Header === */
@@ -99,26 +107,40 @@
   padding: 20px;
   border-radius: 16px;
   display: flex;
-  align-items: center;
-  gap: 15px;
+  flex-direction: column;
   box-shadow: 0 6px 16px rgba(0,0,0,0.12);
   transition: 0.3s;
 }
+
 .stat-card:nth-child(1) {
   background: linear-gradient(135deg, #e16a6a, #89b5e2);
 }
+
 .stat-card:nth-child(2) {
   background: linear-gradient(135deg, #43cea2, #185a9d);
 }
+
 .stat-card:nth-child(3) {
   background: linear-gradient(135deg, #f7971e, #ffd200);
   color: #2d3748;
 }
+
 .stat-card:nth-child(4) {
   background: linear-gradient(135deg, #ff6a88, #ff99ac);
 }
 
 .stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+}
+
+.stat-card-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.stat-card-link:hover .stat-card {
   transform: translateY(-5px);
   box-shadow: 0 10px 25px rgba(0,0,0,0.25);
 }
@@ -132,6 +154,56 @@
 .stat-number {
   font-size: 1.6rem;
   font-weight: 700;
+}
+
+/* Tip Preview Styles */
+.tip-preview {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  margin-bottom: 12px;
+}
+
+.tip-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.tip-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.tip-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 6px 0;
+  line-height: 1.3;
+}
+
+.tip-category {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 8px;
+  border-radius: 12px;
+  display: inline-block;
+  font-weight: 500;
+}
+
+.tip-content {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  padding-left: 0;
 }
 
 /* === Mood Chart === */
@@ -223,6 +295,14 @@
 }
 
 /* === Responsive === */
+@media (max-width: 900px) {
+  .dashboard {
+    margin-left: 0;
+    width: 100%;
+    padding: 16px;
+  }
+}
+
 @media (max-width: 768px) {
   .stats-grid {
     flex-direction: column;

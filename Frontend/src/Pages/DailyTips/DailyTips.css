@@ -1,9 +1,18 @@
 .daily-tips {
-  width: 100vw;
+  margin-left: 250px; /* Match sidebar width */
+  box-sizing: border-box;
+  width: calc(100% - 250px);
   min-height: 100vh;
-  margin: 0;
   padding: 30px;
   background: linear-gradient(135deg, #fef7ff 0%, #f3e8ff 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.daily-tips > * {
+  width: 100%;
+  max-width: 100%;
 }
 
 .tips-header {
@@ -240,6 +249,14 @@
 }
 
 /* Responsive Design */
+@media (max-width: 900px) {
+  .daily-tips {
+    margin-left: 0;
+    width: 100%;
+    padding: 16px;
+  }
+}
+
 @media (max-width: 768px) {
   .daily-tips {
     padding: 12px;

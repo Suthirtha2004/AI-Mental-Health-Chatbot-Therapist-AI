@@ -14,7 +14,8 @@ const Dashboard = () => {
     goals, 
     habits, 
     crisisLevel,
-    addMoodEntry 
+    addMoodEntry,
+    dailyTip
   } = useMentalHealth();
   
   const [quickMood, setQuickMood] = useState(null);
@@ -140,16 +141,30 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-icon">
-            <FaBook />
+        <Link to="/daily-tips" className="stat-card-link">
+          <div className="stat-card">
+            <div className="stat-content">
+              <h3>Daily Tips</h3>
+              {dailyTip ? (
+                <>
+                  <div className="tip-preview">
+                    <div className="tip-icon">{dailyTip.icon}</div>
+                    <div className="tip-info">
+                      <p className="tip-title">{dailyTip.title}</p>
+                      <p className="tip-category">{dailyTip.category}</p>
+                    </div>
+                  </div>
+                  <p className="tip-content">{dailyTip.content.substring(0, 80)}...</p>
+                </>
+              ) : (
+                <>
+                  <p className="stat-number">0</p>
+                  <p className="stat-desc">No tips yet</p>
+                </>
+              )}
+            </div>
           </div>
-          <div className="stat-content">
-            <h3>Daily Tips</h3>
-            <p className="stat-number">{journalEntries?.length || 0}</p>
-            <p className="stat-desc">Total entries</p>
-          </div>
-        </div>
+        </Link>
 
         <div className="stat-card">
           <div className="stat-icon">

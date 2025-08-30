@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { FaRegHeart } from 'react-icons/fa';
-import { MdCalendarToday, MdBarChart, MdAdd, MdArrowUpward, MdEdit } from 'react-icons/md';
+import { MdBarChart, MdAdd, MdArrowUpward, MdEdit } from 'react-icons/md';
 import { 
   LineChart, 
   Line, 
@@ -26,7 +26,7 @@ const MoodTracker = () => {
   const [intensity, setIntensity] = useState(5);
   const [activities, setActivities] = useState([]);
   const [notes, setNotes] = useState('');
-  const [viewMode, setViewMode] = useState('chart'); // chart, calendar, insights
+  const [viewMode, setViewMode] = useState('chart'); // chart, insights
 
   const moodOptions = [
     { value: 10, label: 'Ecstatic', emoji: '🤩', color: '#10b981' },
@@ -151,13 +151,6 @@ const MoodTracker = () => {
           Chart View
         </button>
         <button 
-          className={`toggle-btn ${viewMode === 'calendar' ? 'active' : ''}`}
-          onClick={() => setViewMode('calendar')}
-        >
-          <MdCalendarToday size={16} />
-          Calendar View
-        </button>
-        <button 
           className={`toggle-btn ${viewMode === 'insights' ? 'active' : ''}`}
           onClick={() => setViewMode('insights')}
         >
@@ -279,33 +272,6 @@ const MoodTracker = () => {
                 />
               </LineChart>
             </ResponsiveContainer>
-          </div>
-        </div>
-      )}
-
-      {/* Calendar View */}
-      {viewMode === 'calendar' && (
-        <div className="calendar-view">
-          <h2>Mood Calendar</h2>
-          <div className="mood-calendar">
-            {moodEntries.slice(-30).reverse().map(entry => (
-              <div key={entry.id} className="calendar-day">
-                <div className="day-date">
-                  {format(new Date(entry.date), 'MMM dd')}
-                </div>
-                <div 
-                  className="day-mood"
-                  style={{ 
-                    backgroundColor: moodOptions.find(m => m.value === entry.mood)?.color 
-                  }}
-                >
-                  {moodOptions.find(m => m.value === entry.mood)?.emoji}
-                </div>
-                <div className="day-intensity">
-                  {entry.intensity}/10
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       )}
