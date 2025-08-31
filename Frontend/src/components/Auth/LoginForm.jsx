@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { login } from "../../firebase/auth";
-import { useNavigate } from "react-router-dom"; // ✅ Import
+import { useNavigate, Link } from "react-router-dom"; // ✅ Import Link as well
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -13,7 +13,7 @@ function LoginForm() {
     try {
       await login(email, password);
       setMsg("Login successful 🎉");
-      navigate("/dashboard");  // ✅ redirect to home/dashboard
+      navigate("/chat");  // ✅ redirect to AI chatbot page
     } catch (err) {
       setMsg("Error: " + err.message);
     }
@@ -41,6 +41,16 @@ function LoginForm() {
           <button type="submit">Login</button>
         </form>
         {msg && <p>{msg}</p>}
+        
+        {/* Navigation link to signup */}
+        <div className="auth-navigation">
+          <p>
+            Don't have an account?{" "}
+            <Link to="/signup" className="auth-link">
+              Sign up here
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

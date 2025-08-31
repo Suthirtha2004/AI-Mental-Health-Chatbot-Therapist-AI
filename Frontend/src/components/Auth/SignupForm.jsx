@@ -49,6 +49,16 @@ function SignupForm() {
           <button type="submit">Sign Up</button>
         </form>
         {msg && <p>{msg}</p>}
+        
+        {/* Navigation link to login */}
+        <div className="auth-navigation">
+          <p>
+            Already a user?{" "}
+            <Link to="/login" className="auth-link">
+              Login here
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

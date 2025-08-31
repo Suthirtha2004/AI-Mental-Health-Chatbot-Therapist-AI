@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { MdArrowUpward, MdCalendarToday, MdTrackChanges, MdMessage, MdAdd, MdBarChart, MdPlayCircleOutline } from 'react-icons/md';
-import { FaRegHeart, FaBook } from 'react-icons/fa';
+import { MdArrowUpward, MdCalendarToday, MdTrackChanges, MdMessage, MdAdd, MdBarChart, MdPlayCircleOutline, MdLightbulbOutline, MdShare } from 'react-icons/md';
+import { FaRegHeart, FaBook, FaRegStar } from 'react-icons/fa';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { format, subDays } from 'date-fns';
 import { useMentalHealth } from '../../context/MentalHealthContext';
@@ -20,6 +20,80 @@ const Dashboard = () => {
   
   const [quickMood, setQuickMood] = useState(null);
   const [recentMoodData, setRecentMoodData] = useState([]);
+  const [currentTip, setCurrentTip] = useState(null);
+
+  // Daily Tips data from DailyTips component
+  const tips = [
+    {
+      id: 1,
+      title: "Practice Mindful Breathing",
+      content: "Take 5 deep breaths, counting to 4 on inhale and 6 on exhale. This simple technique can instantly reduce stress and bring you back to the present moment.",
+      category: "Stress Relief",
+      icon: "🫁"
+    },
+    {
+      id: 2,
+      title: "Gratitude Journal",
+      content: "Write down 3 things you're grateful for today, no matter how small. Gratitude practice has been shown to improve mood and overall well-being.",
+      category: "Mindfulness",
+      icon: "📝"
+    },
+    {
+      id: 3,
+      title: "Digital Detox Hour",
+      content: "Set aside one hour each day to disconnect from screens. Use this time to read, meditate, or connect with nature.",
+      category: "Digital Wellness",
+      icon: "📱"
+    },
+    {
+      id: 4,
+      title: "Random Acts of Kindness",
+      content: "Do something kind for someone else today - even a simple compliment can boost both your mood and theirs.",
+      category: "Social Connection",
+      icon: "🤝"
+    },
+    {
+      id: 5,
+      title: "Body Movement",
+      content: "Move your body in a way that feels good - dance, stretch, or take a walk. Physical activity releases endorphins that naturally improve mood.",
+      category: "Physical Health",
+      icon: "💃"
+    },
+    {
+      id: 6,
+      title: "Self-Compassion Break",
+      content: "When you're feeling down, place your hand on your heart and say: 'This is a moment of suffering. Suffering is part of life. May I be kind to myself.'",
+      category: "Self-Care",
+      icon: "💝"
+    },
+    {
+      id: 7,
+      title: "Nature Connection",
+      content: "Spend 10 minutes outside today. Notice the sounds, smells, and sensations. Nature has a powerful calming effect on our nervous system.",
+      category: "Nature Therapy",
+      icon: "🌿"
+    },
+    {
+      id: 8,
+      title: "Boundary Setting",
+      content: "Practice saying 'no' to something that doesn't align with your values or energy today. Setting boundaries is an act of self-respect.",
+      category: "Self-Care",
+      icon: "🛡️"
+    }
+  ];
+
+  const affirmations = [
+    "I am worthy of love, respect, and happiness.",
+    "I have the power to create positive change in my life.",
+    "I am stronger than my challenges.",
+    "I choose to focus on what I can control.",
+    "I am enough, just as I am.",
+    "I deserve to take care of myself.",
+    "I am capable of achieving my goals.",
+    "I choose peace and positivity.",
+    "I trust my intuition and inner wisdom.",
+    "I am resilient and can overcome obstacles."
+  ];
 
   // Generate mood chart data for the last 7 days
   useEffect(() => {
@@ -43,6 +117,25 @@ const Dashboard = () => {
 
     setRecentMoodData(moodData);
   }, [moodEntries]);
+
+  // Set current tip on component mount
+  useEffect(() => {
+    if (dailyTip) {
+      setCurrentTip(dailyTip);
+    } else {
+      // Fallback: generate a random tip if none exists
+      const randomTip = tips[Math.floor(Math.random() * tips.length)];
+      const randomAffirmation = affirmations[Math.floor(Math.random() * affirmations.length)];
+      
+      const newTip = {
+        ...randomTip,
+        affirmation: randomAffirmation,
+        date: new Date().toISOString()
+      };
+      
+      setCurrentTip(newTip);
+    }
+  }, [dailyTip]);
 
   const handleQuickMood = (mood) => {
     setQuickMood(mood);
@@ -141,31 +234,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <Link to="/daily-tips" className="stat-card-link">
-          <div className="stat-card">
-            <div className="stat-content">
-              <h3>Daily Tips</h3>
-              {dailyTip ? (
-                <>
-                  <div className="tip-preview">
-                    <div className="tip-icon">{dailyTip.icon}</div>
-                    <div className="tip-info">
-                      <p className="tip-title">{dailyTip.title}</p>
-                      <p className="tip-category">{dailyTip.category}</p>
-                    </div>
-                  </div>
-                  <p className="tip-content">{dailyTip.content.substring(0, 80)}...</p>
-                </>
-              ) : (
-                <>
-                  <p className="stat-number">0</p>
-                  <p className="stat-desc">No tips yet</p>
-                </>
-              )}
-            </div>
-          </div>
-        </Link>
-
         <div className="stat-card">
           <div className="stat-icon">
             <MdTrackChanges />
@@ -188,6 +256,45 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Enhanced Daily Tips Card */}
+      {currentTip && (
+        <div className="daily-tips-card">
+          <div className="tips-card-header">
+            <h2>💡 Today's Wellness Tip</h2>
+            <Link to="/daily-tips" className="view-all-tips">
+              View All Tips <MdLightbulbOutline />
+            </Link>
+          </div>
+          
+          <div className="tip-card-main">
+            <div className="tip-header">
+              <div className="tip-icon">{currentTip.icon}</div>
+              <div className="tip-meta">
+                <h3>{currentTip.title}</h3>
+                <span className="tip-category">{currentTip.category}</span>
+                <span className="tip-date">
+                  {new Date(currentTip.date).toLocaleDateString()}
+                </span>
+              </div>
+            </div>
+            
+            <div className="tip-content">
+              <p>{currentTip.content}</p>
+            </div>
+            
+            {currentTip.affirmation && (
+              <div className="affirmation-section">
+                <div className="affirmation-header">
+                  <FaRegStar size={16} />
+                  <span>Today's Affirmation</span>
+                </div>
+                <p className="affirmation-text">{currentTip.affirmation}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Mood Chart */}
       <div className="chart-section">

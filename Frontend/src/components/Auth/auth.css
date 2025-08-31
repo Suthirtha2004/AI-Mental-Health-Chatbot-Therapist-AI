@@ -50,4 +50,29 @@
     margin-top: 10px;
     font-size: 14px;
   }
+
+  /* Auth Navigation Links */
+  .auth-navigation {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  .auth-navigation p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 14px;
+  }
+
+  .auth-link {
+    color: #6a5acd;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+  }
+
+  .auth-link:hover {
+    color: #5a4fcf;
+    text-decoration: underline;
+  }
   
