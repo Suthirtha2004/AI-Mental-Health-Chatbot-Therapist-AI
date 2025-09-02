@@ -418,3 +418,16 @@
     font-size: 1.1rem;
   }
 }
+
+/* No Activity State */
+.no-activity {
+  text-align: center;
+  padding: 20px;
+  color: #6b7280;
+  font-style: italic;
+}
+
+.no-activity p {
+  margin: 0;
+  font-size: 0.9rem;
+}

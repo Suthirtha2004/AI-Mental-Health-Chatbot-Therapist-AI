@@ -440,9 +440,6 @@ const ChatInterface = () => {
   return (
     <div className="chat-interface">
       <div className="chat-header">
-        <h1>AI Therapist Chat</h1>
-        <p>Share your thoughts and feelings with our AI mental health assistant</p>
-
         {crisisLevel >= 8 && (
           <div className="crisis-alert">
             <Link to="/crisis-support" className="crisis-link">

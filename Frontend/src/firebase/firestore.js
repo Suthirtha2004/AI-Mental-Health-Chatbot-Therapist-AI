@@ -131,6 +131,7 @@
 //.........................................................................................................................................
 
 import { getFirestore, collection, addDoc, getDocs, query, orderBy, where, doc, getDoc } from "firebase/firestore";
+import { format } from 'date-fns';
 import app from "./config";
 
 const db = getFirestore(app);
@@ -360,11 +361,57 @@ export const savePlantScore = async (uid, sentiment, score) => {
 };
 
 /* -------- Mood Entries Table -------- */
-export const saveMoodEntry = async (uid, mood) => {
-  await addDoc(collection(db, `users/${uid}/mood_entries`), {
-    mood,
-    timestamp: Date.now()
-  });
+export const saveMoodEntry = async (uid, moodData) => {
+  const moodEntry = {
+    mood: moodData.mood,
+    intensity: moodData.intensity,
+    activities: moodData.activities,
+    notes: moodData.notes,
+    date: moodData.date || format(new Date(), 'yyyy-MM-dd'),
+    timestamp: Date.now(),
+    createdAt: new Date().toISOString()
+  };
+  
+  const docRef = await addDoc(collection(db, `users/${uid}/mood_entries`), moodEntry);
+  return docRef.id;
+};
+
+// Get mood entries for a user
+export const getMoodEntries = async (uid) => {
+  try {
+    const q = query(
+      collection(db, `users/${uid}/mood_entries`),
+      orderBy('timestamp', 'desc')
+    );
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+  } catch (error) {
+    console.error('Error getting mood entries:', error);
+    return [];
+  }
+};
+
+// Get mood entries by date range
+export const getMoodEntriesByDateRange = async (uid, startDate, endDate) => {
+  try {
+    const q = query(
+      collection(db, `users/${uid}/mood_entries`),
+      where('date', '>=', startDate),
+      where('date', '<=', endDate),
+      orderBy('date', 'desc')
+    );
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+  } catch (error) {
+    console.error('Error getting mood entries by date range:', error);
+    return [];
+  }
 };
 
 /* -------- Mini Games Table -------- */

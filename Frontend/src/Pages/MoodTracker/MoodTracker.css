@@ -184,9 +184,21 @@
 }
 
 .mood-option.selected {
+  background: #3b82f6;
+  border-color: #1d4ed8;
   border-width: 3px;
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+  color: white;
+}
+
+.mood-option.selected .mood-emoji {
+  filter: brightness(1.2);
+}
+
+.mood-option.selected .mood-label {
+  color: white;
+  font-weight: 600;
 }
 
 .mood-emoji {
@@ -458,5 +470,40 @@
   
   .insights-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Loading and Empty States */
+.loading-message {
+  text-align: center;
+  padding: 40px;
+  color: #718096;
+  font-size: 1.1rem;
+  font-style: italic;
+}
+
+.no-entries {
+  text-align: center;
+  padding: 40px;
+  color: #718096;
+  font-size: 1.1rem;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  border: 2px dashed #cbd5e0;
+  margin: 20px 0;
+}
+
+.no-entries::before {
+  content: "📊";
+  display: block;
+  font-size: 3rem;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 768px) {
+  .loading-message,
+  .no-entries {
+    padding: 20px;
+    font-size: 1rem;
   }
 }

@@ -89,10 +89,44 @@ const Chatbot = () => {
     if (!text) return { label: "NEUTRAL", score: 0 };
 
     const positiveWords = [
-      "happy","great","good","awesome","amazing","love","enjoy","fun","smile","laugh","fantastic","excellent","wonderful","glad","relieved","excited"
+      "happy","great","good","awesome","amazing","love","enjoy","fun","smile","laugh","fantastic","excellent","wonderful","glad","relieved","excited",
+      // Enhanced positive expressions
+      "smiling","pleased","super excited","feel good","made my day","buzzing","wonderful","calm","content","thankful","heart feels full",
+      "didn't expect","going really well","best feeling","cooking","lifts my mood","proud","overjoyed","finished","goofing around","best time",
+      "hanging out","can't wait","pumped","at peace","turned out","lately","tomorrow","weekend","friends","family","project","concert",
+      "stop smiling","so pleased","super excited","really good","totally made","buzzing with happiness","such a wonderful","so calm and content",
+      "thankful for","heart feels full","really happy","going really well","best feeling ever","always lifts","proud relieved","finally finished",
+      "just goofing","having the best time","makes me so happy","can't wait for","so pumped","feel at peace"
     ];
     const negativeWords = [
-      "sad","bad","terrible","awful","hate","angry","anxious","stressed","depressed","upset","horrible","cry","pain","lonely","tired","worried"
+      "sad","bad","terrible","awful","hate","angry","anxious","stressed","depressed","upset","horrible","cry","pain","lonely","tired","worried",
+      // Enhanced emotional distress keywords
+      "feeling sad","unhappy","feeling depressed","feeling very anxious","feeling down","miserable","stressed out","really lonely",
+      "heart is hurting","not sure why","been so sad","nothing is going right","everything feel so hard","don't enjoy","used to",
+      "should be happy","feel empty","feeling blah","don't see the point","anymore","feeling very sad","very anxious","not happy",
+      "so sad","so unhappy","so anxious","so stressed","so lonely","so hard","so empty","so miserable","so awful","so depressed",
+      "making me","everything feels","my heart","lately","right in my life","does everything","the things i","the point in",
+      "see the point","point in anything","anymore","feeling blah","don't see","not sure why","been so","going right",
+      // Suicide and self-harm related
+      "suicide","kill","end my life","die","hurt myself","harm myself","overdose","hopeless","trapped","worthless","useless","burden",
+      "give up","can't go on","can't take it","don't want to be here","don't want to exist","don't want to live","wish i was dead",
+      "wish i could die","hope i die","accident wouldn't be so bad","thinking about ending","no reason to live","life is not worth",
+      "better off dead","better off without me","world better without me","life is meaningless","no point in living","what's the point",
+      "nobody would miss me","everyone would be better off","helpless","stuck","devastated","crushed","broken","defeated","overwhelmed",
+      // Anger and frustration
+      "mad","furious","rage","scream","break something","smash","lose it","pounding","about to lose it","suck","useless","idiot",
+      "shut up","damn it","don't understand","your fault","everyone is against me","stupid","hate myself","yelling","disappear",
+      "overwhelmed","leave me alone","don't care","whatever","fine","suggestions","helpline","counselor","self-help","diagnose",
+      // Suicide and self-harm keywords (from checkSuicidal function)
+      "suicide","kill myself","end my life","want to die","take my life","end it all","end everything","end this","end myself",
+      "self harm","cut myself","hurt myself","harm myself","damage myself","no reason to live","life is not worth","life isn't worth",
+      "not worth living","better off dead","better off without me","world better without me","give up","give up on life",
+      "tired of living","sick of living","done with life","can't go on","can't continue","can't take it anymore","can't handle it",
+      "don't want to be here","don't want to exist","don't want to live","wish i was dead","wish i could die","hope i die",
+      "hope i don't wake up","if i die","if something happens to me","accident wouldn't be so bad","maybe i should just",
+      "perhaps i should","thinking about ending","overdose","over dose","take pills","swallow pills","jump off","jump from",
+      "hang myself","hanging","gun","shoot myself","drive off","crash car","life is meaningless","no point in living",
+      "what's the point","why bother","nobody would miss me","everyone would be better off","burden to others","suicidal"
     ];
 
     let score = 0;
@@ -140,11 +174,24 @@ const Chatbot = () => {
       // Emotional expressions
       "life is meaningless", "no point in living", "what's the point", "why bother",
       "nobody would miss me", "everyone would be better off", "burden to others",
-      "worthless", "useless", "hopeless", "helpless", "trapped", "stuck"
+      "worthless", "useless", "hopeless", "helpless", "trapped", "stuck",
+      "devastated", "crushed", "broken", "defeated", "overwhelmed"
     ];
     
     const lower = text.toLowerCase();
-    return keywords.some((word) => lower.includes(word));
+    const foundKeywords = keywords.filter(word => lower.includes(word));
+    const isCrisis = foundKeywords.length > 0;
+    
+    // Debug crisis detection
+    if (isCrisis) {
+      console.log("🚨 CRISIS DETECTED:", {
+        originalText: text,
+        lowerText: lower,
+        foundKeywords: foundKeywords
+      });
+    }
+    
+    return isCrisis;
   };
 
   // New function to catch general negative feelings
@@ -212,6 +259,15 @@ AI (casual, friendly reply to the last User message):
     const isCrisis = checkSuicidal(userMsg);
     const isGeneralNegative = checkGeneralNegative(userMsg);
     const isPositiveMood = checkPositiveMood(userMsg);
+    
+    // Debug crisis detection
+    console.log("Crisis Detection Debug:", {
+      userMsg,
+      isCrisis,
+      isGeneralNegative,
+      isPositiveMood,
+      sentiment: sentiment?.label
+    });
 
     try {
       if (!chat) throw new Error("Gemini model not ready");
@@ -357,26 +413,10 @@ AI (casual, friendly reply to the last User message):
   return (
     <div className="chat-wrapper">
       <div className="chat-header">
+        <h1 className="chat-title">AI Therapist Chat</h1>
         <button className="history-toggle" onClick={toggleHistory} disabled={isLoadingHistory}>
           {showHistory ? "Hide History" : isLoadingHistory ? "Loading..." : "Show History"}
         </button>
-        <button
-          className="history-toggle"
-          onClick={async () => {
-            setConnTestMsg("Testing Firestore...");
-            const res = await testFirestoreConnectivity();
-            if (res.ok) {
-              setConnTestMsg(`Firestore OK (id: ${res.id})`);
-            } else {
-              setConnTestMsg(`Firestore ERROR: ${res.error}`);
-            }
-          }}
-        >
-          Test DB
-        </button>
-        {connTestMsg && (
-          <div className="conn-test-msg">{connTestMsg}</div>
-        )}
       </div>
 
       {showHistory && (

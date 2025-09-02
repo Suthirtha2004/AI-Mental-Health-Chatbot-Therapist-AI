@@ -17,6 +17,9 @@ import {
 } from 'recharts';
 import { format, subDays, startOfWeek, endOfWeek } from 'date-fns';
 import { useMentalHealth } from '../../context/MentalHealthContext';
+import { saveMoodEntry, getMoodEntries } from '../../firebase/firestore';
+import { auth } from '../../firebase/auth';
+import { onAuthStateChanged } from 'firebase/auth';
 import './MoodTracker.css';
 
 const MoodTracker = () => {
@@ -27,6 +30,9 @@ const MoodTracker = () => {
   const [activities, setActivities] = useState([]);
   const [notes, setNotes] = useState('');
   const [viewMode, setViewMode] = useState('chart'); // chart, insights
+  const [currentUser, setCurrentUser] = useState(null);
+  const [firebaseMoodEntries, setFirebaseMoodEntries] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const moodOptions = [
     { value: 10, label: 'Ecstatic', emoji: '🤩', color: '#10b981' },
@@ -47,23 +53,66 @@ const MoodTracker = () => {
     'Stress', 'Anxiety', 'Meditation', 'Therapy', 'Hobbies'
   ];
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (selectedMood === null) return;
-
-    addMoodEntry({
-      mood: selectedMood,
-      intensity,
-      activities,
-      notes
+  // Listen for authentication state changes
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
+      if (user) {
+        loadMoodEntries(user.uid);
+      }
     });
+    return () => unsubscribe();
+  }, []);
 
-    // Reset form
-    setSelectedMood(null);
-    setIntensity(5);
-    setActivities([]);
-    setNotes('');
-    setShowForm(false);
+  // Load mood entries from Firebase
+  const loadMoodEntries = async (uid) => {
+    try {
+      setIsLoading(true);
+      const entries = await getMoodEntries(uid);
+      setFirebaseMoodEntries(entries);
+    } catch (error) {
+      console.error('Error loading mood entries:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (selectedMood === null || !currentUser) return;
+
+    try {
+      setIsLoading(true);
+      
+      // Save to Firebase
+      const moodData = {
+        mood: selectedMood,
+        intensity,
+        activities,
+        notes,
+        date: format(new Date(), 'yyyy-MM-dd')
+      };
+      
+      await saveMoodEntry(currentUser.uid, moodData);
+      
+      // Also save to local context for immediate UI update
+      addMoodEntry(moodData);
+      
+      // Reload mood entries from Firebase
+      await loadMoodEntries(currentUser.uid);
+
+      // Reset form
+      setSelectedMood(null);
+      setIntensity(5);
+      setActivities([]);
+      setNotes('');
+      setShowForm(false);
+    } catch (error) {
+      console.error('Error saving mood entry:', error);
+      alert('Failed to save mood entry. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const toggleActivity = (activity) => {
@@ -81,8 +130,11 @@ const MoodTracker = () => {
       return format(date, 'yyyy-MM-dd');
     }).reverse();
 
+    // Use Firebase mood entries if available, otherwise fall back to local context
+    const entriesToUse = firebaseMoodEntries.length > 0 ? firebaseMoodEntries : moodEntries;
+
     return last30Days.map(date => {
-      const dayEntries = moodEntries.filter(entry => entry.date === date);
+      const dayEntries = entriesToUse.filter(entry => entry.date === date);
       const avgMood = dayEntries.length > 0 
         ? dayEntries.reduce((sum, entry) => sum + entry.mood, 0) / dayEntries.length 
         : null;
@@ -98,10 +150,14 @@ const MoodTracker = () => {
   // Generate activity distribution data
   const getActivityData = () => {
     const activityCounts = {};
-    moodEntries.forEach(entry => {
-      entry.activities.forEach(activity => {
-        activityCounts[activity] = (activityCounts[activity] || 0) + 1;
-      });
+    const entriesToUse = firebaseMoodEntries.length > 0 ? firebaseMoodEntries : moodEntries;
+    
+    entriesToUse.forEach(entry => {
+      if (entry.activities && Array.isArray(entry.activities)) {
+        entry.activities.forEach(activity => {
+          activityCounts[activity] = (activityCounts[activity] || 0) + 1;
+        });
+      }
     });
 
     return Object.entries(activityCounts)
@@ -113,7 +169,9 @@ const MoodTracker = () => {
   // Generate mood distribution data
   const getMoodDistribution = () => {
     const moodCounts = {};
-    moodEntries.forEach(entry => {
+    const entriesToUse = firebaseMoodEntries.length > 0 ? firebaseMoodEntries : moodEntries;
+    
+    entriesToUse.forEach(entry => {
       const moodLabel = moodOptions.find(m => m.value === entry.mood)?.label || 'Unknown';
       moodCounts[moodLabel] = (moodCounts[moodLabel] || 0) + 1;
     });
@@ -322,39 +380,49 @@ const MoodTracker = () => {
       {/* Recent Entries */}
       <div className="recent-entries">
         <h2>Recent Mood Entries</h2>
-        <div className="entries-list">
-          {moodEntries.slice(-10).reverse().map(entry => (
-            <div key={entry.id} className="entry-card">
-              <div className="entry-mood">
-                {moodOptions.find(m => m.value === entry.mood)?.emoji}
-              </div>
-              <div className="entry-details">
-                <div className="entry-header">
-                  <span className="entry-date">
-                    {format(new Date(entry.date), 'MMM dd, yyyy')}
-                  </span>
-                  <span className="entry-time">
-                    {format(new Date(entry.timestamp), 'h:mm a')}
-                  </span>
+        {isLoading ? (
+          <div className="loading-message">Loading mood entries...</div>
+        ) : (
+          <div className="entries-list">
+            {(firebaseMoodEntries.length > 0 ? firebaseMoodEntries : moodEntries)
+              .slice(-10)
+              .reverse()
+              .map(entry => (
+              <div key={entry.id} className="entry-card">
+                <div className="entry-mood">
+                  {moodOptions.find(m => m.value === entry.mood)?.emoji}
                 </div>
-                <div className="entry-mood-info">
-                  {moodOptions.find(m => m.value === entry.mood)?.label} 
-                  (Intensity: {entry.intensity}/10)
+                <div className="entry-details">
+                  <div className="entry-header">
+                    <span className="entry-date">
+                      {format(new Date(entry.date), 'MMM dd, yyyy')}
+                    </span>
+                    <span className="entry-time">
+                      {format(new Date(entry.timestamp || entry.createdAt), 'h:mm a')}
+                    </span>
+                  </div>
+                  <div className="entry-mood-info">
+                    {moodOptions.find(m => m.value === entry.mood)?.label} 
+                    (Intensity: {entry.intensity}/10)
+                  </div>
+                  {entry.activities && entry.activities.length > 0 && (
+                    <div className="entry-activities">
+                      {entry.activities.join(', ')}
+                    </div>
+                  )}
+                  {entry.notes && (
+                    <div className="entry-notes">
+                      "{entry.notes}"
+                    </div>
+                  )}
                 </div>
-                {entry.activities.length > 0 && (
-                  <div className="entry-activities">
-                    {entry.activities.join(', ')}
-                  </div>
-                )}
-                {entry.notes && (
-                  <div className="entry-notes">
-                    "{entry.notes}"
-                  </div>
-                )}
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+            {firebaseMoodEntries.length === 0 && moodEntries.length === 0 && (
+              <div className="no-entries">No mood entries yet. Add your first entry above!</div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

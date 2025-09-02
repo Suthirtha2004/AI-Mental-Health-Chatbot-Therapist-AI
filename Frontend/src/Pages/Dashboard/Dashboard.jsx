@@ -5,6 +5,9 @@ import { FaRegHeart, FaBook, FaRegStar } from 'react-icons/fa';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { format, subDays } from 'date-fns';
 import { useMentalHealth } from '../../context/MentalHealthContext';
+import { getMoodEntries, saveMoodEntry } from '../../firebase/firestore';
+import { auth } from '../../firebase/auth';
+import { onAuthStateChanged } from 'firebase/auth';
 import './Dashboard.css';
 import { logout } from '../../firebase/auth';
 
@@ -23,6 +26,9 @@ const Dashboard = () => {
   const [quickMood, setQuickMood] = useState(null);
   const [recentMoodData, setRecentMoodData] = useState([]);
   const [currentTip, setCurrentTip] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [firebaseMoodEntries, setFirebaseMoodEntries] = useState([]);
+  const [isLoadingMoods, setIsLoadingMoods] = useState(false);
 
   // Daily Tips data from DailyTips component
   const tips = [
@@ -97,6 +103,30 @@ const Dashboard = () => {
     "I am resilient and can overcome obstacles."
   ];
 
+  // Listen for authentication state changes
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
+      if (user) {
+        loadMoodEntries(user.uid);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Load mood entries from Firebase
+  const loadMoodEntries = async (uid) => {
+    try {
+      setIsLoadingMoods(true);
+      const entries = await getMoodEntries(uid);
+      setFirebaseMoodEntries(entries);
+    } catch (error) {
+      console.error('Error loading mood entries:', error);
+    } finally {
+      setIsLoadingMoods(false);
+    }
+  };
+
   // Generate mood chart data for the last 7 days
   useEffect(() => {
     const last7Days = Array.from({ length: 7 }, (_, i) => {
@@ -104,8 +134,11 @@ const Dashboard = () => {
       return format(date, 'yyyy-MM-dd');
     }).reverse();
 
+    // Use Firebase mood entries if available, otherwise fall back to local context
+    const entriesToUse = firebaseMoodEntries.length > 0 ? firebaseMoodEntries : moodEntries;
+
     const moodData = last7Days.map(date => {
-      const dayEntries = moodEntries.filter(entry => entry.date === date);
+      const dayEntries = entriesToUse.filter(entry => entry.date === date);
       const avgMood = dayEntries.length > 0 
         ? dayEntries.reduce((sum, entry) => sum + entry.mood, 0) / dayEntries.length 
         : null;
@@ -118,7 +151,7 @@ const Dashboard = () => {
     });
 
     setRecentMoodData(moodData);
-  }, [moodEntries]);
+  }, [moodEntries, firebaseMoodEntries]);
 
   // Set current tip on component mount
   useEffect(() => {
@@ -139,14 +172,30 @@ const Dashboard = () => {
     }
   }, [dailyTip]);
 
-  const handleQuickMood = (mood) => {
+  const handleQuickMood = async (mood) => {
     setQuickMood(mood);
-    addMoodEntry({
+    
+    const moodData = {
       mood,
       intensity: 5,
       activities: [],
-      notes: 'Quick mood check-in'
-    });
+      notes: 'Quick mood check-in',
+      date: format(new Date(), 'yyyy-MM-dd')
+    };
+
+    // Save to local context for immediate UI update
+    addMoodEntry(moodData);
+
+    // Save to Firebase if user is authenticated
+    if (currentUser?.uid) {
+      try {
+        await saveMoodEntry(currentUser.uid, moodData);
+        // Reload mood entries from Firebase
+        await loadMoodEntries(currentUser.uid);
+      } catch (error) {
+        console.error('Error saving quick mood to Firebase:', error);
+      }
+    }
   };
 
   const getMoodEmoji = (mood) => {
@@ -245,7 +294,9 @@ const Dashboard = () => {
           </div>
           <div className="stat-content">
             <h3>Mood Entries</h3>
-            <p className="stat-number">{moodEntries.length}</p>
+            <p className="stat-number">
+              {isLoadingMoods ? '...' : (firebaseMoodEntries.length > 0 ? firebaseMoodEntries.length : moodEntries.length)}
+            </p>
             <p className="stat-desc">This month</p>
           </div>
         </div>
@@ -338,7 +389,10 @@ const Dashboard = () => {
       <div className="recent-activity">
         <h2>Recent Activity</h2>
         <div className="activity-list">
-          {moodEntries.slice(-3).reverse().map(entry => (
+          {(firebaseMoodEntries.length > 0 ? firebaseMoodEntries : moodEntries)
+            .slice(-3)
+            .reverse()
+            .map(entry => (
             <div key={entry.id} className="activity-item">
               <div className="activity-icon">
                 {getMoodEmoji(entry.mood)}
@@ -346,7 +400,7 @@ const Dashboard = () => {
               <div className="activity-content">
                 <p>Mood check-in: {entry.mood}/10</p>
                 <span className="activity-time">
-                  {format(new Date(entry.timestamp), 'MMM dd, h:mm a')}
+                  {format(new Date(entry.timestamp || entry.createdAt), 'MMM dd, h:mm a')}
                 </span>
               </div>
             </div>
@@ -364,6 +418,11 @@ const Dashboard = () => {
               </div>
             </div>
           ))}
+          {firebaseMoodEntries.length === 0 && moodEntries.length === 0 && (
+            <div className="no-activity">
+              <p>No recent mood entries. Start tracking your mood!</p>
+            </div>
+          )}
         </div>
       </div>
 
