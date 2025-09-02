@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { MdArrowUpward, MdCalendarToday, MdTrackChanges, MdMessage, MdAdd, MdBarChart, MdPlayCircleOutline, MdLightbulbOutline, MdShare } from 'react-icons/md';
 import { FaRegHeart, FaBook, FaRegStar } from 'react-icons/fa';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { format, subDays } from 'date-fns';
 import { useMentalHealth } from '../../context/MentalHealthContext';
 import './Dashboard.css';
+import { logout } from '../../firebase/auth';
 
 const Dashboard = () => {
   const { 
@@ -17,6 +18,7 @@ const Dashboard = () => {
     addMoodEntry,
     dailyTip
   } = useMentalHealth();
+  const navigate = useNavigate();
   
   const [quickMood, setQuickMood] = useState(null);
   const [recentMoodData, setRecentMoodData] = useState([]);
@@ -169,6 +171,20 @@ const Dashboard = () => {
       <div className="dashboard-header">
         <h1>Welcome back! 👋</h1>
         <p>Here's your mental health overview for today</p>
+        <div style={{ marginLeft: 'auto' }}>
+          <button 
+            className="action-btn" 
+            onClick={async () => {
+              try {
+                await logout();
+              } finally {
+                navigate('/');
+              }
+            }}
+          >
+            Log out
+          </button>
+        </div>
       </div>
 
       {/* Crisis Status */}

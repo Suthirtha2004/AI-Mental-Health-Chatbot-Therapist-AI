@@ -2,6 +2,9 @@ import React, { useEffect, useRef, useState } from "react";
 import "./Chatbot.css";
 import { pipeline } from "@xenova/transformers"; // Hugging Face transformers.js
 import { Link } from "react-router-dom"; // Using Link for suggestion buttons
+import { saveChatHistory, saveChatMood, getChatHistory, saveChatHistoryGlobal, saveChatMoodGlobal, getChatHistoryByEmail, testFirestoreConnectivity, getChatHistoryByUidAny } from "../../firebase/firestore";
+import { auth } from "../../firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
 
 const Chatbot = () => {
   const [chat, setChat] = useState(null);
@@ -10,6 +13,18 @@ const Chatbot = () => {
   const [isTyping, setIsTyping] = useState(false);
   const chatBoxRef = useRef(null);
   const [sentimentAnalyzer, setSentimentAnalyzer] = useState(null);
+  const [showHistory, setShowHistory] = useState(false);
+  const [historyItems, setHistoryItems] = useState([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [currentUserInfo, setCurrentUserInfo] = useState(null);
+  const [connTestMsg, setConnTestMsg] = useState("");
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (user) => {
+      setCurrentUserInfo(user ? { uid: user.uid, email: user.email ?? null } : null);
+    });
+    return () => unsub();
+  }, []);
 
   // Load Gemini
   useEffect(() => {
@@ -25,20 +40,75 @@ const Chatbot = () => {
     loadAI();
   }, []);
 
-  // Load sentiment model
+  // Load sentiment model (eager)
   useEffect(() => {
     const loadSentimentModel = async () => {
-      const analyzer = await pipeline("sentiment-analysis");
-      setSentimentAnalyzer(analyzer);
+      try {
+        const analyzer = await pipeline("sentiment-analysis");
+        setSentimentAnalyzer(analyzer);
+      } catch (e) {
+        console.error("sentiment model load error:", e);
+      }
     };
     loadSentimentModel();
   }, []);
 
+  // Ensure analyzer is available (lazy fallback)
+  const ensureSentimentAnalyzer = async () => {
+    if (sentimentAnalyzer) return sentimentAnalyzer;
+    try {
+      const analyzer = await pipeline("sentiment-analysis");
+      setSentimentAnalyzer(analyzer);
+      return analyzer;
+    } catch (e) {
+      console.error("ensureSentimentAnalyzer error:", e);
+      return null;
+    }
+  };
+
   // Analyze sentiment
   const analyzeSentiment = async (text) => {
-    if (!sentimentAnalyzer) return null;
-    const result = await sentimentAnalyzer(text);
-    return result[0];
+    const analyzer = await ensureSentimentAnalyzer();
+    if (!analyzer) return null;
+    const result = await analyzer(text);
+    // Expected format: [{ label: 'POSITIVE' | 'NEGATIVE', score: number }]
+    return result && result[0] ? result[0] : null;
+  };
+
+  // Lightweight rule-based fallback sentiment
+  const keywordScore = (text, keywords, weight) => {
+    let score = 0;
+    for (const k of keywords) {
+      if (text.includes(k)) score += weight;
+    }
+    return score;
+  };
+
+  const ruleBasedSentiment = (raw) => {
+    const text = (raw || "").toLowerCase();
+    if (!text) return { label: "NEUTRAL", score: 0 };
+
+    const positiveWords = [
+      "happy","great","good","awesome","amazing","love","enjoy","fun","smile","laugh","fantastic","excellent","wonderful","glad","relieved","excited"
+    ];
+    const negativeWords = [
+      "sad","bad","terrible","awful","hate","angry","anxious","stressed","depressed","upset","horrible","cry","pain","lonely","tired","worried"
+    ];
+
+    let score = 0;
+    score += keywordScore(text, positiveWords, 1);
+    score -= keywordScore(text, negativeWords, 1);
+
+    // emoji nudges
+    if (/(😊|😄|😁|😀|😍|👍)/.test(text)) score += 1;
+    if (/(😢|😭|😔|☹️|😞|👎)/.test(text)) score -= 1;
+
+    // intensifiers
+    if (/very|really|super|extremely/.test(text)) score += Math.sign(score) * 0.5;
+
+    const label = score > 0.5 ? "POSITIVE" : score < -0.5 ? "NEGATIVE" : "NEUTRAL";
+    const norm = Math.min(1, Math.max(0, Math.abs(score) / 3));
+    return { label, score: Number(norm.toFixed(3)) };
   };
 
   // Detect suicidal/self-harm thoughts
@@ -135,7 +205,10 @@ AI (casual, friendly reply to the last User message):
     setInputText("");
     setIsTyping(true);
 
-    const sentiment = await analyzeSentiment(userMsg);
+    let sentiment = await analyzeSentiment(userMsg);
+    if (!sentiment || (sentiment?.score !== undefined && sentiment.score < 0.6)) {
+      sentiment = ruleBasedSentiment(userMsg);
+    }
     const isCrisis = checkSuicidal(userMsg);
     const isGeneralNegative = checkGeneralNegative(userMsg);
     const isPositiveMood = checkPositiveMood(userMsg);
@@ -180,6 +253,41 @@ AI (casual, friendly reply to the last User message):
 
       setMessages((prev) => [...prev, botMessage]);
 
+      // Persist mood and chat history if user is authenticated
+      const currentUser = currentUserInfo;
+      if (currentUser?.uid) {
+        // Save sentiment/mood label if available
+        if (sentiment?.label) {
+          try {
+            const emailLower = currentUser.email ? String(currentUser.email).toLowerCase() : null;
+            await saveChatMood(currentUser.uid, sentiment.label, currentUser.email ?? null);
+            if (currentUser.email) {
+              await saveChatMoodGlobal(emailLower, sentiment.label, currentUser.uid);
+            }
+          } catch (e) {
+            console.error("saveChatMood error:", e);
+          }
+        }
+
+        // Save chat history entry combining user prompt and bot reply
+        try {
+          const title = userMsg.slice(0, 80);
+          const details = {
+            user: userMsg,
+            bot: botReply,
+            sentiment: sentiment?.label ?? "UNKNOWN",
+            sentimentScore: typeof sentiment?.score === "number" ? sentiment.score : null,
+          };
+          const emailLower = currentUser.email ? String(currentUser.email).toLowerCase() : null;
+          await saveChatHistory(currentUser.uid, title, details, currentUser.email ?? null);
+          if (currentUser.email) {
+            await saveChatHistoryGlobal(emailLower, title, details, currentUser.uid);
+          }
+        } catch (e) {
+          console.error("saveChatHistory error:", e);
+        }
+      }
+
     } catch (err) {
       console.error("Gemini error:", err);
       setMessages((prev) => [
@@ -188,6 +296,30 @@ AI (casual, friendly reply to the last User message):
       ]);
     } finally {
       setIsTyping(false);
+    }
+  };
+
+  const toggleHistory = async () => {
+    const next = !showHistory;
+    setShowHistory(next);
+    if (next) {
+      const currentUser = currentUserInfo;
+      if (!currentUser?.uid) return;
+      setIsLoadingHistory(true);
+      try {
+        // Try top-level by email first for reliability
+        let data = [];
+        // Prefer UID-based fetch for reliability
+        data = await getChatHistoryByUidAny(currentUser.uid);
+        if ((!data || data.length === 0) && currentUser.email) {
+          data = await getChatHistoryByEmail(String(currentUser.email).toLowerCase());
+        }
+        setHistoryItems(data);
+      } catch (e) {
+        console.error("getChatHistory error:", e);
+      } finally {
+        setIsLoadingHistory(false);
+      }
     }
   };
 
@@ -224,7 +356,54 @@ AI (casual, friendly reply to the last User message):
 
   return (
     <div className="chat-wrapper">
-      
+      <div className="chat-header">
+        <button className="history-toggle" onClick={toggleHistory} disabled={isLoadingHistory}>
+          {showHistory ? "Hide History" : isLoadingHistory ? "Loading..." : "Show History"}
+        </button>
+        <button
+          className="history-toggle"
+          onClick={async () => {
+            setConnTestMsg("Testing Firestore...");
+            const res = await testFirestoreConnectivity();
+            if (res.ok) {
+              setConnTestMsg(`Firestore OK (id: ${res.id})`);
+            } else {
+              setConnTestMsg(`Firestore ERROR: ${res.error}`);
+            }
+          }}
+        >
+          Test DB
+        </button>
+        {connTestMsg && (
+          <div className="conn-test-msg">{connTestMsg}</div>
+        )}
+      </div>
+
+      {showHistory && (
+        <div className="history-panel">
+          {historyItems.length === 0 && !isLoadingHistory && (
+            <div className="history-empty">No saved chats yet.</div>
+          )}
+          {historyItems.map(item => (
+            <div key={item.id} className="history-item">
+              <div className="history-title">{item.title}</div>
+              <div className="history-meta">
+                {new Date(item.timestamp).toLocaleString()}
+              </div>
+              {item.details && (
+                <div className="history-details">
+                  <div><strong>User:</strong> {item.details.user}</div>
+                  <div><strong>Bot:</strong> {item.details.bot}</div>
+                  {item.details.sentiment && (
+                    <div><strong>Sentiment:</strong> {item.details.sentiment}</div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className="chat-container" ref={chatBoxRef}>
         {messages.map((msg, idx) => (
           <React.Fragment key={idx}>
