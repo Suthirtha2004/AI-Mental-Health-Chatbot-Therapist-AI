@@ -312,6 +312,44 @@ export const getChatHistoryByUidAny = async (uid, maxDocs = 200) => {
     .slice(0, maxDocs);
 };
 
+export const getChatSentimentScores = async (uid, maxDocs = 50) => {
+  try {
+    // Try user subcollection first
+    const q1 = query(collection(db, `users/${uid}/chat_history`), orderBy("timestamp", "desc"));
+    const snap1 = await getDocs(q1);
+    if (!snap1.empty) {
+      return snap1.docs
+        .map(d => d.data())
+        .filter(x => x.details?.sentimentScore !== undefined)
+        .map(x => ({ score: x.details.sentimentScore, timestamp: x.timestamp }))
+        .slice(0, maxDocs);
+    }
+  } catch (e) {}
+
+  // Fallback to top-level collection
+  const col = collection(db, "saveChatHistory");
+  try {
+    const q2 = query(col, where("uid", "==", uid), orderBy("timestamp", "desc"));
+    const snap2 = await getDocs(q2);
+    if (!snap2.empty) {
+      return snap2.docs
+        .map(d => d.data())
+        .filter(x => x.details?.sentimentScore !== undefined)
+        .map(x => ({ score: x.details.sentimentScore, timestamp: x.timestamp }))
+        .slice(0, maxDocs);
+    }
+  } catch (e) {}
+
+  // Last resort: fetch and filter client-side
+  const snapAll = await getDocs(col);
+  return snapAll.docs
+    .map(d => d.data())
+    .filter(x => x.uid === uid && x.details?.sentimentScore !== undefined)
+    .map(x => ({ score: x.details.sentimentScore, timestamp: x.timestamp }))
+    .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
+    .slice(0, maxDocs);
+};
+
 /* -------- Virtual Plant Table -------- */
 export const savePlantScore = async (uid, sentiment, score) => {
   await addDoc(collection(db, `users/${uid}/virtual_plant`), {
