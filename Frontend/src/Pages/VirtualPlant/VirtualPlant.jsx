@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FaDropbox } from 'react-icons/fa';
 import { useMentalHealth } from '../../context/MentalHealthContext';
-import { getChatSentimentScores } from '../../firebase/firestore';
+import { getChatSentiments, getChatSentimentScores } from '../../firebase/firestore';
 import { auth } from '../../firebase/auth';
 import './VirtualPlant.css';
 
@@ -27,12 +27,12 @@ const VirtualPlant = () => {
   const plantStages = [
     { level: 1, name: 'Sad Seed', emoji: '🌱', minSentiment: 0, description: 'Just starting to grow' },
     { level: 2, name: 'Hopeful Sprout', emoji: '🌿', minSentiment: 20, description: 'Finding its way' },
-    { level: 3, name: 'Growing Plant', emoji: '🌱', minSentiment: 50, description: 'Getting stronger' },
-    { level: 4, name: 'Happy Plant', emoji: '🌿', minSentiment: 100, description: 'Feeling good' },
-    { level: 5, name: 'Joyful Bloom', emoji: '🌸', minSentiment: 200, description: 'Radiating happiness' },
-    { level: 6, name: 'Magical Garden', emoji: '🌺', minSentiment: 300, description: 'Pure bliss' },
-    { level: 7, name: 'Enchanted Forest', emoji: '🌳', minSentiment: 500, description: 'Transcendent joy' },
-    { level: 8, name: 'Celestial Garden', emoji: '🌟', minSentiment: 800, description: 'Divine happiness' }
+    { level: 3, name: 'Growing Plant', emoji: '🌱', minSentiment: 100, description: 'Getting stronger' },
+    { level: 4, name: 'Happy Plant', emoji: '🌿', minSentiment: 300, description: 'Feeling good' },
+    { level: 5, name: 'Joyful Bloom', emoji: '🌸', minSentiment: 500, description: 'Radiating happiness' },
+    { level: 6, name: 'Magical Garden', emoji: '🌺', minSentiment: 800, description: 'Pure bliss' },
+    { level: 7, name: 'Enchanted Forest', emoji: '🌳', minSentiment: 900, description: 'Transcendent joy' },
+    { level: 8, name: 'Celestial Garden', emoji: '🌟', minSentiment: 1000, description: 'Divine happiness' }
   ];
 
   // Determine current stage based on sentiment growth
@@ -50,28 +50,69 @@ const VirtualPlant = () => {
     setTimeout(() => setShowWaterAnimation(false), 2000);
   };
 
+  // const fetchSentimentGrowth = async () => {
+  //   const currentUser = auth.currentUser;
+  //   if (!currentUser?.uid) return;
+
+  //   setIsLoadingSentiment(true);
+  //   try {
+  //     const scores = await getChatSentimentScores(currentUser.uid);
+  //     setSentimentScores(scores);
+  //     const sentimeType = await getChatSentiments(currentUser.uid);
+  //     // Calculate total growth from sentiment scores (multiply by 100 as requested)
+  //     const totalGrowth = scores.reduce((sum, item) => {
+  //       const growth = (item.score || 0) * 100;
+  //       if(item.sentiment === "NEGATIVE") return sum - growth;
+  //       if(item.sentiment === "POSITIVE") return sum + growth;
+  //       return sum;
+  //     }, 0);
+      
+  //     setSentimentGrowth(totalGrowth);
+  //   } catch (error) {
+  //     console.error('Error fetching sentiment scores:', error);
+  //   } finally {
+  //     setIsLoadingSentiment(false);
+  //   }
+  // };
+
   const fetchSentimentGrowth = async () => {
     const currentUser = auth.currentUser;
     if (!currentUser?.uid) return;
-
+  
     setIsLoadingSentiment(true);
     try {
       const scores = await getChatSentimentScores(currentUser.uid);
-      setSentimentScores(scores);
-      
-      // Calculate total growth from sentiment scores (multiply by 100 as requested)
-      const totalGrowth = scores.reduce((sum, item) => {
+      const sentiments = await getChatSentiments(currentUser.uid);
+  
+      // Merge scores + sentiments by timestamp
+      const merged = scores.map(scoreItem => {
+        const match = sentiments.find(
+          s => s.timestamp === scoreItem.timestamp
+        );
+        return {
+          ...scoreItem,
+          sentiment: match ? match.sentiment : null
+        };
+      });
+  
+      setSentimentScores(merged);
+  
+      // Calculate growth from merged data
+      const totalGrowth = merged.reduce((sum, item) => {
         const growth = (item.score || 0) * 100;
-        return sum + growth;
+        if (item.sentiment === "NEGATIVE") return sum - growth;
+        if (item.sentiment === "POSITIVE") return sum + growth;
+        return sum;
       }, 0);
-      
+  
       setSentimentGrowth(totalGrowth);
     } catch (error) {
-      console.error('Error fetching sentiment scores:', error);
+      console.error("Error fetching sentiment scores:", error);
     } finally {
       setIsLoadingSentiment(false);
     }
   };
+  
 
   // Auto-fetch sentiment growth on component mount
   useEffect(() => {

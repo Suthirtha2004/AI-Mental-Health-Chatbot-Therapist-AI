@@ -351,6 +351,55 @@ export const getChatSentimentScores = async (uid, maxDocs = 50) => {
     .slice(0, maxDocs);
 };
 
+export const getChatSentiments = async (uid, maxDocs = 50) => {
+  const parseDocs = (snap) => {
+    return snap.docs
+      .map(d => d.data())
+      .filter(x => x.details?.sentiment) // only keep if sentiment exists
+      .map(x => ({
+        sentiment: x.details.sentiment,   // "POSITIVE" | "NEGATIVE" | "NEUTRAL"
+        timestamp: x.timestamp || null
+      }))
+      .slice(0, maxDocs);
+  };
+
+  try {
+    // Check user subcollection
+    const q1 = query(
+      collection(db, `users/${uid}/chat_history`),
+      orderBy("timestamp", "desc")
+    );
+    const snap1 = await getDocs(q1);
+    if (!snap1.empty) return parseDocs(snap1);
+  } catch (e) {
+    console.error("Error fetching user subcollection:", e);
+  }
+
+  try {
+    // Fallback to top-level collection
+    const col = collection(db, "saveChatHistory");
+    const q2 = query(col, where("uid", "==", uid), orderBy("timestamp", "desc"));
+    const snap2 = await getDocs(q2);
+    if (!snap2.empty) return parseDocs(snap2);
+
+    // Last resort: client-side filter
+    const snapAll = await getDocs(col);
+    return snapAll.docs
+      .map(d => d.data())
+      .filter(x => x.uid === uid && x.details?.sentiment)
+      .map(x => ({
+        sentiment: x.details.sentiment,
+        timestamp: x.timestamp || null
+      }))
+      .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
+      .slice(0, maxDocs);
+  } catch (e) {
+    console.error("Error fetching fallback:", e);
+    return [];
+  }
+};
+
+
 /* -------- Virtual Plant Table -------- */
 export const savePlantScore = async (uid, sentiment, score) => {
   await addDoc(collection(db, `users/${uid}/virtual_plant`), {
