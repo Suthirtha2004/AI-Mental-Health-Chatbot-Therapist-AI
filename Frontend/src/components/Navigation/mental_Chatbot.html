@@ -153,7 +153,7 @@
     import { GoogleGenAI } from "https://esm.run/@google/genai";
 
     const ai = new GoogleGenAI({
-      apiKey: "AIzaSyBw7k7pjVfMs5zpUEAbVAJuvLxCNOVNoLk",
+      apiKey: import.meta.env.Gemini_api,
     });
 
     const chat = await ai.chats.create({ model: "gemini-2.5-flash",

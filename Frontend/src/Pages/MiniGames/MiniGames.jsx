@@ -3,7 +3,7 @@ import { FaRegHeart, FaTrophy } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
 import { useMentalHealth } from '../../context/MentalHealthContext';
 import './MiniGames.css';
-
+import { saveGameScore } from "../../firebase/firestore";
 
 
 const BreathingExercise = ({ setScore, timeLeft }) => {

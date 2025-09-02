@@ -14,11 +14,13 @@ import GoalTracker from './Pages/GoalTracker/GoalTracker';
 import CrisisSupport from './Pages/CrisisSupport/CrisisSupport';
 import Navigation from './components/Navigation/Navigation';
 import { MentalHealthProvider } from './context/MentalHealthContext';
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
+import { testChatMood, readChatMoods } from "./firebase/firestore";
 
 function App() {
   const [isNavOpen, setIsNavOpen] = useState(false);
 
+  
   return (
     <MentalHealthProvider>
       <Router>
@@ -29,6 +31,7 @@ function App() {
           <Route path="/" element={<WelcomePage />} />
           <Route path="/login" element={<LoginForm />} />
           <Route path="/signup" element={<SignupForm />} />
+ 
 
           {/* Protected routes (with navigation) */}
           <Route
